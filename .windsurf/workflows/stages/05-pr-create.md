@@ -54,12 +54,12 @@ Severity: {diagnosis.severity}
 
 ### 5.2 Create the PR
 
-**Automated mode** (github-mcp or gh CLI):
+**MCP mode** (github-mcp or gh CLI):
 - Use `gh pr create` or github-mcp to create the PR
 - Assign reviewers based on CODEOWNERS or default team
 - Add the `ai-auto-fix` label
 
-**Manual mode**:
+**Paste mode**:
 - Output the complete title and body in a code block
 - Ask: "Would you like me to run `gh pr create`, or will you create the PR manually?"
 - If manual: user copies the content into their PR tool

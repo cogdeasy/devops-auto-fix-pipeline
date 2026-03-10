@@ -2,7 +2,7 @@
 
 ## About This Document
 
-This guide walks you through end-to-end testing of the AI Auto-Fix Pipeline. The pipeline has **two modes** — one that uses MCP servers to connect directly to Jenkins, Confluence, GitHub and Nexus, and one where you paste data manually. Both modes follow the same five-stage flow:
+This guide walks you through end-to-end testing of the AI Auto-Fix Pipeline. The pipeline has **two modes** — **MCP mode**, which uses MCP servers to connect directly to Jenkins, Confluence, GitHub and Nexus, and **Paste mode**, where you paste data into the chat at each stage. Both modes follow the same five-stage flow:
 
 **Detect** → **Analyse** → **Patch** → **Validate** → **PR Create**
 
@@ -14,8 +14,8 @@ This document covers both modes from start to finish, with test scenarios you ca
 
 ## What You Need
 
-| Item | MCP Flow | Manual Flow |
-|------|----------|-------------|
+| Item | MCP flow | Paste flow |
+|------|----------|------------|
 | Windsurf with project open | Required | Required |
 | `.windsurf/rules/devops-pipeline.md` loaded | Required | Required |
 | Jenkins MCP server connected | Required | Not needed |
@@ -49,7 +49,7 @@ Each scenario lives in `testing/scenarios/XX-name/` and contains:
 
 ---
 
-## Flow 1: Manual Mode (No MCP)
+## Flow 1: Paste Mode
 
 This is the recommended starting point. It works immediately — no infrastructure or MCP setup required. You paste data into Windsurf at each stage.
 
@@ -58,10 +58,10 @@ This is the recommended starting point. It works immediately — no infrastructu
 In Windsurf, type:
 
 ```
-@workflow auto-fix-manual
+@workflow auto-fix-paste
 ```
 
-Windsurf loads the manual workflow and begins prompting you for data.
+Windsurf loads the Paste mode workflow and begins prompting you for data.
 
 ### Stage 1: Failure Detection
 
@@ -152,11 +152,11 @@ Options:
 - Original failure reference
 - Audit trail
 
-**That's the full manual flow, end to end.**
+**That's the full Paste flow, end to end.**
 
 ---
 
-## Flow 2: MCP Mode (Automated)
+## Flow 2: MCP Mode
 
 This flow connects Windsurf directly to Jenkins, Confluence, GitHub and Nexus via MCP servers. The AI fetches data, creates branches, triggers builds, and opens PRs autonomously.
 
@@ -217,10 +217,10 @@ If any server is not connected, check the `.env` credentials and Windsurf logs.
 In Windsurf, type:
 
 ```
-@workflow auto-fix-full
+@workflow auto-fix-mcp
 ```
 
-### Stage 1: Failure Detection (Automated)
+### Stage 1: Failure Detection (MCP)
 
 **What happens:** The AI calls `jenkins-mcp` → `get_failed_builds` to list recent failures across monitored jobs. No user input needed.
 
@@ -231,21 +231,21 @@ In Windsurf, type:
 
 **Output:** Job name, build number, timestamp, and the raw build log — all fetched automatically.
 
-### Stage 2: Log Analysis (Automated)
+### Stage 2: Log Analysis (MCP)
 
 **What happens:** The AI parses the build log to classify the error, then calls:
 - `confluence-mcp` → `search_known_issues` to find documented resolutions
 - `nexus-mcp` → `check_dependency_vulnerabilities` if it's a dependency issue
 
-**What you see:** A structured diagnosis — same format as manual mode, but the AI gathered all the data itself.
+**What you see:** A structured diagnosis — same format as Paste mode, but the AI gathered all the data itself.
 
-### Stage 3: Patch Generation (Automated)
+### Stage 3: Patch Generation (MCP)
 
 **What happens:** The AI calls `github-mcp` (or uses `gh` CLI) to fetch the current source files from the repository. It generates a fix based on the diagnosis.
 
 **What you see:** A unified diff with explanation. The AI may ask for confirmation before proceeding to apply.
 
-### Stage 4: Validation (Automated)
+### Stage 4: Validation (MCP)
 
 **What happens:**
 1. The AI creates a feature branch: `ai-fix/{job-name}-{build-number}`
@@ -257,7 +257,7 @@ In Windsurf, type:
 
 **What you see:** Build progress updates. On success, confirmation that all tests pass.
 
-### Stage 5: PR Creation (Automated)
+### Stage 5: PR Creation (MCP)
 
 **What happens:** The AI calls `github-mcp` or `gh pr create` to open a pull request with:
 - Title: `fix: {description} [auto-fix #{build-number}]`
@@ -267,7 +267,7 @@ In Windsurf, type:
 
 **What you see:** A PR URL. The pipeline is complete.
 
-**That's the full automated flow, end to end.**
+**That's the full MCP flow, end to end.**
 
 ---
 
@@ -275,7 +275,7 @@ In Windsurf, type:
 
 ![MCP Integration Architecture](../assets/diagrams/mcp-integration.png)
 
-| Stage | Manual Flow | MCP Flow |
+| Stage | Paste flow | MCP flow |
 |-------|------------|----------|
 | 1. Detect | You paste the Jenkins log | AI queries Jenkins MCP directly |
 | 2. Analyse | You paste Confluence/Nexus data (or skip) | AI searches Confluence + Nexus MCP |
@@ -289,7 +289,7 @@ Both flows produce the same outputs: a diagnosis, a patch, and a PR body. The di
 
 ## Running the Interactive Demo Script
 
-For a guided walkthrough (manual flow), run:
+For a guided walkthrough (Paste flow), run:
 
 ```bash
 bash testing/demo-runner.sh
@@ -313,9 +313,9 @@ Use this after each test run (either flow):
 |------|--------------|
 | Detection | Correct job name, build number, error type extracted |
 | Analysis | Root cause accurately identified, severity correct |
-| Known issues | Confluence data used when provided (manual) or fetched (MCP) |
+| Known issues | Confluence data used when provided (Paste) or fetched (MCP) |
 | Patch | Fix is correct, minimal, and addresses root cause |
-| Validation | Appropriate validation steps (manual) or build triggered (MCP) |
+| Validation | Appropriate validation steps (Paste) or build triggered (MCP) |
 | PR body | Contains root cause, changes, risk assessment, validation results |
 | Mode | Pipeline operated correctly in the tested mode |
 | Retry logic | On validation failure, AI retries with new context (max 3) |

@@ -9,13 +9,13 @@
 
 ### 4.1 Apply the Patch
 
-**Automated mode** (github-mcp available):
+**MCP mode** (github-mcp available):
 1. Create branch `ai-fix/{job_name}-{build_number}` from the default branch
 2. Apply the patch and commit:
    - Message: `fix: {fix_description} (auto-fix for #{build_number})`
 3. Push the branch
 
-**Manual mode**:
+**Paste mode**:
 1. Provide git commands for the user to run:
    ```
    git checkout -b ai-fix/{job_name}-{build_number}
@@ -26,12 +26,12 @@
 
 ### 4.2 Trigger Validation Build
 
-**Automated mode** (jenkins-mcp available):
+**MCP mode** (jenkins-mcp available):
 1. Call `trigger_build` with the feature branch
 2. Poll `get_build_status` every 30 seconds (timeout: 15 minutes)
 3. Retrieve the result
 
-**Manual mode**:
+**Paste mode**:
 1. Ask user: "Please trigger a build on the feature branch and paste the result when complete."
 2. Alternatively: "Run the build locally: `mvn clean install` or `npm test` and paste the output."
 
@@ -59,7 +59,7 @@
 
 ```
 validation_result: "pass" | "fail"
-validation_build_number: number (if automated)
+validation_build_number: number (if MCP mode)
 retry_count: number
 escalated: boolean
 ```

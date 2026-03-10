@@ -109,7 +109,7 @@ prompt
 
 step "1" "Failure Detection — Paste the Jenkins log into Windsurf"
 
-info "In Windsurf, type:  @workflow auto-fix-manual"
+info "In Windsurf, type:  @workflow auto-fix-paste"
 info "When prompted for the build failure, copy-paste the following log:"
 
 prompt

@@ -1,6 +1,6 @@
 # Stage 1: Failure Detection
 
-## Automated Mode (jenkins-mcp available)
+## MCP Mode (jenkins-mcp available)
 
 1. Call `get_failed_builds` with parameters:
    - `jobName`: the target Jenkins job (or iterate all jobs if not specified)
@@ -11,7 +11,7 @@
    - `buildNumber`: from the failed build
 4. Return the build log and metadata
 
-## Manual Mode (no jenkins-mcp)
+## Paste Mode (no jenkins-mcp)
 
 1. Prompt the user:
    > "Please paste the Jenkins build failure output. This can be the console log, a failure notification, or a description of the error."

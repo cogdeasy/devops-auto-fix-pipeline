@@ -69,7 +69,7 @@ pipeline:
 
       mcp_required: [jenkins]
       mcp_optional: []
-      fallback: manual        # if Jenkins MCP is unavailable, pause for human
+      fallback: paste        # if Jenkins MCP is unavailable, pause for human
 
       inputs:
         - name: job_name
@@ -146,7 +146,7 @@ pipeline:
 
       mcp_required: []
       mcp_optional: [confluence, nexus]
-      fallback: manual
+      fallback: paste
 
       inputs:
         - name: build_log
@@ -233,7 +233,7 @@ pipeline:
 
       mcp_required: [github]
       mcp_optional: []
-      fallback: manual
+      fallback: paste
 
       inputs:
         - name: diagnosis
@@ -319,7 +319,7 @@ pipeline:
 
       mcp_required: [jenkins]
       mcp_optional: []
-      fallback: manual
+      fallback: paste
 
       inputs:
         - name: patch
@@ -426,7 +426,7 @@ pipeline:
 
       mcp_required: [github]
       mcp_optional: []
-      fallback: manual
+      fallback: paste
 
       inputs:
         - name: patch
@@ -536,7 +536,7 @@ pipeline:
   # -------------------------------------------------------------------------
   error_handling:
     # What to do when a required MCP server is unreachable
-    on_mcp_unavailable: "fallback_to_manual"
+    on_mcp_unavailable: "fallback_to_paste"
 
     # What to do when the AI model returns an error or unusable output
     on_ai_failure: "pause_and_notify"

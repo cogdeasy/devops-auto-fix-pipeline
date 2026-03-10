@@ -8,11 +8,11 @@
 
 ### 3.1 Fetch Source Files
 
-**Automated mode** (github-mcp or gh CLI available):
+**MCP mode** (github-mcp or gh CLI available):
 - For each file in `diagnosis.affected_files`, fetch the current content from the default branch
 - Use `gh api repos/{owner}/{repo}/contents/{path}` or `github-mcp`
 
-**Manual mode**:
+**Paste mode**:
 - Ask user: "Please paste the contents of the following files, or confirm they are accessible locally:"
 - List each affected file path
 

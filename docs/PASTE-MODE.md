@@ -1,8 +1,8 @@
-# Manual Mode User Guide
+# Paste Mode User Guide
 
-This guide explains how to use the AI Auto-Fix Pipeline without MCP servers connected. In this mode, you manually paste data from Jenkins, Confluence, and other tools into Windsurf.
+This guide explains how to use the AI Auto-Fix Pipeline without MCP servers connected. In Paste mode, you manually paste data from Jenkins, Confluence, and other tools into Windsurf.
 
-## When to Use Manual Mode
+## When to Use Paste Mode
 
 - MCP servers are not configured in your Windsurf installation
 - You are in an air-gapped or restricted network environment

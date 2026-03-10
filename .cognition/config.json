@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "jenkins-mcp": {
+      "command": "npx",
+      "args": ["tsx", "/Users/deasy/Code/work/devops-auto-fix-pipeline/mcp-servers/jenkins-mcp/index.ts"],
+      "env": {
+        "JENKINS_URL": "",
+        "JENKINS_USER": "",
+        "JENKINS_TOKEN": ""
+      }
+    },
+    "nexus-mcp": {
+      "command": "npx",
+      "args": ["tsx", "/Users/deasy/Code/work/devops-auto-fix-pipeline/mcp-servers/nexus-mcp/index.ts"],
+      "env": {
+        "NEXUS_URL": "",
+        "NEXUS_TOKEN": ""
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}

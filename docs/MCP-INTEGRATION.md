@@ -19,7 +19,7 @@ The AI-Driven DevOps Auto-Fix Pipeline uses the **Model Context Protocol (MCP)**
 
 Each MCP server acts as a thin, authenticated proxy between the AI orchestrator and the underlying service. The servers expose a curated set of **tools** (actions the AI can invoke) and **resources** (data the AI can read), scoped to exactly what the pipeline requires. This keeps the attack surface narrow and the integration auditable.
 
-The pipeline is designed for **graceful degradation**. If one or more MCP servers are unavailable -- due to network restrictions, credential expiry, or an air-gapped environment -- the pipeline falls back to **manual mode** for that stage, prompting the user to paste the equivalent data. No stage has a hard dependency on full MCP connectivity; every stage can operate in either automated or manual mode independently.
+The pipeline is designed for **graceful degradation**. If one or more MCP servers are unavailable -- due to network restrictions, credential expiry, or an air-gapped environment -- the pipeline falls back to **Paste mode** for that stage, prompting the user to paste the equivalent data. No stage has a hard dependency on full MCP connectivity; every stage can operate in either MCP or Paste mode independently.
 
 This document details each MCP server, how it integrates with each pipeline stage, the exact tools and resources invoked, data flow between components, error handling strategies, and security considerations.
 
@@ -206,13 +206,13 @@ Note: The repository owner and name are typically provided as parameters to indi
 | **In** | Job name (from user or webhook trigger) |
 | **Out** | Build number, build timestamp, failure status, console log (raw text) |
 
-**Breakpoints (Automated-to-Manual Handoff):**
+**Breakpoints (MCP-to-Paste Handoff):**
 
 - If `jenkins-mcp` is not connected, the pipeline prompts: *"Paste the Jenkins console log for the failed build."*
 - If the job name is ambiguous or not found, the pipeline asks the user to confirm the exact job path.
 - If the build log exceeds 50,000 characters, the pipeline asks the user to confirm whether to proceed with truncated output or provide a filtered excerpt.
 
-**Manual Mode Equivalent:** The user pastes the Jenkins failure notification email or the console log directly into the Windsurf prompt.
+**Paste Mode Equivalent:** The user pastes the Jenkins failure notification email or the console log directly into the Windsurf prompt.
 
 ---
 
@@ -241,13 +241,13 @@ The AI performs the primary analysis locally (pattern matching on error messages
 | **In** | Console log text, extracted error signatures, dependency coordinates (from Stage 1 output) |
 | **Out** | Failure classification (compilation error, test failure, dependency issue, infrastructure issue), root cause hypothesis, relevant Confluence page links, dependency availability status |
 
-**Breakpoints (Automated-to-Manual Handoff):**
+**Breakpoints (MCP-to-Paste Handoff):**
 
 - If `confluence-mcp` is not connected, the pipeline skips known-issue lookup and asks: *"Do you have any Confluence pages or runbooks related to this error? Paste the content or URL."*
 - If `nexus-mcp` is not connected and the failure is dependency-related, the pipeline asks: *"Can you confirm whether artifact X version Y is available in Nexus?"*
 - If the AI's confidence in root cause classification is below a configured threshold (default: 70%), the pipeline pauses and presents its analysis for human review before proceeding.
 
-**Manual Mode Equivalent:** The user pastes Confluence page content and confirms dependency versions when prompted.
+**Paste Mode Equivalent:** The user pastes Confluence page content and confirms dependency versions when prompted.
 
 ---
 
@@ -272,14 +272,14 @@ The AI performs the primary analysis locally (pattern matching on error messages
 | **In** | Root cause analysis, file paths from stack traces, error classification, Confluence resolution steps (from Stage 2 output) |
 | **Out** | Proposed patch (unified diff format), list of modified files, explanation of changes, confidence score |
 
-**Breakpoints (Automated-to-Manual Handoff):**
+**Breakpoints (MCP-to-Paste Handoff):**
 
 - If `github-mcp` is not connected, the pipeline asks: *"Paste the contents of [file path] from the [branch] branch."* This is repeated for each required file.
 - If the AI finds multiple plausible fixes, it presents all options with trade-off analysis and asks the user to select one.
 - If the patch modifies more than 5 files or exceeds 200 lines of changes, the pipeline pauses for human review before proceeding to validation.
 - If the patch touches security-sensitive files (authentication, encryption, access control), the pipeline always pauses for human review regardless of confidence.
 
-**Manual Mode Equivalent:** The user pastes file contents or provides file paths for local reads. The user describes any known related fixes they are aware of.
+**Paste Mode Equivalent:** The user pastes file contents or provides file paths for local reads. The user describes any known related fixes they are aware of.
 
 ---
 
@@ -313,13 +313,13 @@ The pipeline supports up to 3 validation attempts. On each failure:
 3. If the failure is the same, the AI escalates to manual review.
 4. If the failure is an infrastructure issue (e.g., agent offline, timeout), the pipeline retries without modifying the patch.
 
-**Breakpoints (Automated-to-Manual Handoff):**
+**Breakpoints (MCP-to-Paste Handoff):**
 
 - If `jenkins-mcp` is not connected, the pipeline asks: *"Please trigger a build of [job name] on branch [branch name] and paste the result when complete."*
 - After 3 failed validation attempts, the pipeline stops and presents a summary of all attempts for human review.
 - If the validation build takes longer than a configured timeout (default: 30 minutes), the pipeline alerts the user and asks whether to continue waiting or abort.
 
-**Manual Mode Equivalent:** The user triggers the build manually in Jenkins and pastes the console output back into the prompt.
+**Paste Mode Equivalent:** The user triggers the build manually in Jenkins and pastes the console output back into the prompt.
 
 ---
 
@@ -348,22 +348,22 @@ The pipeline supports up to 3 validation attempts. On each failure:
 | **In** | Validated patch, failure analysis, build results, Confluence links (from Stages 1-4) |
 | **Out** | PR URL, branch name, commit SHA |
 
-**Breakpoints (Automated-to-Manual Handoff):**
+**Breakpoints (MCP-to-Paste Handoff):**
 
 - If `github-mcp` is not connected, the pipeline outputs the patch as a unified diff and a pre-formatted PR body in Markdown. The user can then: (a) apply the diff locally with `git apply`, (b) push to a branch, and (c) create the PR manually using the provided body text.
 - If the repository requires signed commits or has branch protection rules that prevent direct pushes from the service account, the pipeline falls back to local git commands and prompts the user accordingly.
 - The PR is always created in **draft** state (where supported) to enforce human review before merge.
 
-**Manual Mode Equivalent:** The user runs `git checkout -b`, `git apply`, `git push`, and `gh pr create` locally, using the diff and PR body provided by the pipeline.
+**Paste Mode Equivalent:** The user runs `git checkout -b`, `git apply`, `git push`, and `gh pr create` locally, using the diff and PR body provided by the pipeline.
 
 ---
 
 ## 4. Pipeline Action to MCP Mapping Table
 
-The following table provides a complete mapping of every pipeline action to its automated (MCP) and manual (human-paste) implementations:
+The following table provides a complete mapping of every pipeline action to its MCP mode and Paste mode implementations:
 
-| Stage | Action | Automated (MCP) | Manual (Human Paste) |
-|-------|--------|-----------------|---------------------|
+| Stage | Action | MCP Mode | Paste Mode |
+|-------|--------|----------|------------|
 | 1. Detect | Get failed builds | jenkins-mcp: get_failed_builds | User pastes Jenkins failure notification |
 | 1. Detect | Get build details | jenkins-mcp: get_build_log | User pastes console log |
 | 2. Analyse | Search known issues | confluence-mcp: search_known_issues | User pastes Confluence page content |
@@ -390,15 +390,15 @@ This matrix shows which MCP servers are required or optional at each pipeline st
 
 ### Partial Automation Scenarios
 
-**Scenario A: Jenkins MCP only.** If only `jenkins-mcp` is configured, Stages 1 and 4 run fully automated. Stages 2 and 3 require manual input (user pastes Confluence content, file contents). Stage 5 requires the user to create the PR manually using the AI-generated diff and PR body. This is a common configuration for teams that have Jenkins API access but operate in a restricted GitHub environment.
+**Scenario A: Jenkins MCP only.** If only `jenkins-mcp` is configured, Stages 1 and 4 run in full MCP mode. Stages 2 and 3 require manual input (user pastes Confluence content, file contents). Stage 5 requires the user to create the PR manually using the AI-generated diff and PR body. This is a common configuration for teams that have Jenkins API access but operate in a restricted GitHub environment.
 
-**Scenario B: GitHub MCP only.** If only `github-mcp` is configured, Stages 3 and 5 run fully automated. Stage 1 requires the user to paste the Jenkins failure log. Stage 2 requires manual Confluence and Nexus lookups. Stage 4 requires the user to trigger and report on the validation build manually. This is useful when teams want AI-assisted patch generation and PR creation but trigger the pipeline manually from a build failure.
+**Scenario B: GitHub MCP only.** If only `github-mcp` is configured, Stages 3 and 5 run in full MCP mode. Stage 1 requires the user to paste the Jenkins failure log. Stage 2 requires manual Confluence and Nexus lookups. Stage 4 requires the user to trigger and report on the validation build manually. This is useful when teams want AI-assisted patch generation and PR creation but trigger the pipeline manually from a build failure.
 
-**Scenario C: All MCPs except Confluence and Nexus.** Stages 1, 3, 4, and 5 run fully automated. Stage 2 operates in a hybrid mode: the AI performs its own log analysis (pattern matching, error classification) without external context augmentation. The quality of analysis may be lower for obscure or organisation-specific errors that would otherwise be resolved by consulting runbooks. This is the most common configuration, as Confluence and Nexus integrations are optional enhancements.
+**Scenario C: All MCPs except Confluence and Nexus.** Stages 1, 3, 4, and 5 run in full MCP mode. Stage 2 operates in partial MCP mode: the AI performs its own log analysis (pattern matching, error classification) without external context augmentation. The quality of analysis may be lower for obscure or organisation-specific errors that would otherwise be resolved by consulting runbooks. This is the most common configuration, as Confluence and Nexus integrations are optional enhancements.
 
-**Scenario D: No MCPs (fully manual).** All stages operate in human-in-the-loop mode. The user pastes data at each stage, and the AI performs analysis, patch generation, and PR body formatting. This mode requires no infrastructure access and works in air-gapped environments. It is the fallback for all stages.
+**Scenario D: No MCPs (Paste mode).** All stages operate in Paste mode. The user pastes data at each stage, and the AI performs analysis, patch generation, and PR body formatting. This mode requires no infrastructure access and works in air-gapped environments. It is the fallback for all stages.
 
-**Scenario E: Selective stage automation.** Teams can configure MCP availability on a per-stage basis through the pipeline configuration. For example, a team might allow automated detection (Stage 1) and analysis (Stage 2) but require manual review gates at patch generation (Stage 3) and PR creation (Stage 5) for compliance reasons. The breakpoints described in Section 3 support this pattern.
+**Scenario E: Selective stage automation.** Teams can configure MCP availability on a per-stage basis through the pipeline configuration. For example, a team might allow MCP-connected detection (Stage 1) and analysis (Stage 2) but require review gates at patch generation (Stage 3) and PR creation (Stage 5) for compliance reasons. The breakpoints described in Section 3 support this pattern.
 
 ---
 
@@ -556,13 +556,13 @@ This matrix shows which MCP servers are required or optional at each pipeline st
 When an MCP server becomes unavailable mid-pipeline, the system follows a structured degradation protocol:
 
 **Connection Failure at Stage Entry.**
-If the MCP server cannot be reached when a stage begins, the pipeline immediately switches that stage to manual mode. The user is informed which MCP server is unavailable and what data they need to provide. Previously completed stages are not affected.
+If the MCP server cannot be reached when a stage begins, the pipeline immediately switches that stage to Paste mode. The user is informed which MCP server is unavailable and what data they need to provide. Previously completed stages are not affected.
 
 **Connection Failure Mid-Tool-Call.**
 If the connection drops during an active tool call (e.g., `get_build_log` times out), the pipeline:
 
 1. Retries the tool call up to 3 times with exponential backoff (2s, 4s, 8s).
-2. If all retries fail, falls back to manual mode for that specific action.
+2. If all retries fail, falls back to Paste mode for that specific action.
 3. Logs the failure with timestamp, tool name, error details, and retry count for audit purposes.
 
 **Partial Data Retrieval.**
@@ -580,8 +580,8 @@ If a tool call returns partial data (e.g., truncated log, incomplete search resu
 | **403 Forbidden** | Pipeline halts. Reports the specific permission that is missing (e.g., "Service account lacks Job/Build permission on Jenkins"). |
 | **404 Not Found** | Pipeline asks the user to verify the resource identifier (job name, page ID, artifact coordinates). May suggest alternatives. |
 | **429 Rate Limited** | Pipeline waits for the duration specified in the `Retry-After` header (or 60 seconds if absent), then retries. |
-| **500+ Server Error** | Pipeline retries up to 3 times with exponential backoff. On persistent failure, falls back to manual mode. |
-| **Timeout (>30s)** | Pipeline retries once. On second timeout, falls back to manual mode with a note about potential service degradation. |
+| **500+ Server Error** | Pipeline retries up to 3 times with exponential backoff. On persistent failure, falls back to Paste mode. |
+| **Timeout (>30s)** | Pipeline retries once. On second timeout, falls back to Paste mode with a note about potential service degradation. |
 
 ### 7.3 Data Validation Errors
 
@@ -680,9 +680,9 @@ All patches generated by the AI are treated as untrusted code. Safeguards includ
 
 - **Mandatory human review.** PRs are created in draft state and require at least one human approval before merge.
 - **Scope limitation.** The pipeline refuses to generate patches that modify CI/CD configuration files (Jenkinsfile, Dockerfile, Kubernetes manifests) without explicit user approval.
-- **Diff size limits.** Patches exceeding a configurable threshold (default: 200 lines changed, 5 files modified) trigger mandatory human review even in fully automated mode.
+- **Diff size limits.** Patches exceeding a configurable threshold (default: 200 lines changed, 5 files modified) trigger mandatory human review even in full MCP mode.
 - **Security-sensitive file detection.** Files matching patterns such as `**/auth/**`, `**/security/**`, `**/*secret*`, `**/*credential*` are flagged and require explicit human approval.
 
 ---
 
-*This document is maintained alongside the pipeline source code. For the manual-mode workflow guide, see [MANUAL-MODE.md](MANUAL-MODE.md). For project setup, see the [README](../README.md).*
+*This document is maintained alongside the pipeline source code. For the Paste mode workflow guide, see [PASTE-MODE.md](PASTE-MODE.md). For project setup, see the [README](../README.md).*

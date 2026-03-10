@@ -2,8 +2,8 @@
 
 ## Project Overview
 This is an AI-Driven DevOps Auto-Fix Pipeline that operates in two modes:
-1. **Automated mode** — MCP servers connect directly to Jenkins, Confluence, GitHub, Nexus
-2. **Manual mode** — Users paste data from these tools into prompts
+1. **MCP mode** — MCP servers connect directly to Jenkins, Confluence, GitHub, Nexus
+2. **Paste mode** — Users paste data from these tools into prompts
 
 ## Build & Verify
 - MCP servers: `cd mcp-servers/<name> && npm install && npx tsx index.ts`

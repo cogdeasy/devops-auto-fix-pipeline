@@ -1,4 +1,4 @@
-# Auto-Fix Pipeline - Full Automated Workflow
+# Auto-Fix Pipeline - MCP Workflow
 
 This workflow executes the complete auto-fix pipeline end-to-end using MCP integrations. All data retrieval and actions are performed through connected MCP tool servers (Jenkins, Confluence, GitHub, Nexus).
 
@@ -13,7 +13,7 @@ Before starting this workflow, verify the following MCP servers are connected an
 - `github-mcp` -- for repository operations (read files, create branches, push, open PRs)
 - `nexus-mcp` -- for artifact and dependency checks
 
-If any MCP server is unavailable, fall back to the manual workflow (`auto-fix-manual.md`) for the affected steps.
+If any MCP server is unavailable, fall back to the Paste workflow (`auto-fix-paste.md`) for the affected steps.
 
 ---
 

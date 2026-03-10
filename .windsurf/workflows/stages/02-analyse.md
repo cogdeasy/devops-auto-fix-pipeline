@@ -27,20 +27,20 @@ Parse the build log to classify the error:
 
 ### 2.3 Known Issue Search
 
-**Automated mode** (confluence-mcp available):
+**MCP mode** (confluence-mcp available):
 - Call `search_known_issues` with the error message
 - Call `search_pages` with keywords from the error
 
-**Manual mode**:
+**Paste mode**:
 - Ask user: "Do you have any Confluence documentation or known-issue pages for this error? Paste here or type 'skip'."
 
 ### 2.4 Dependency Check (optional)
 
-**Automated mode** (nexus-mcp available):
+**MCP mode** (nexus-mcp available):
 - If dependency error: call `search_artifacts` to verify artifact availability
 - Call `check_dependency_vulnerabilities` for flagged dependencies
 
-**Manual mode**:
+**Paste mode**:
 - Ask user to confirm dependency versions if relevant
 
 ## Output

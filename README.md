@@ -8,8 +8,8 @@ This pipeline implements the HSBC AI-Driven DevOps Auto-Fix workflow from Conflu
 
 | Mode | Description | When to use |
 |------|-------------|-------------|
-| **Automated (MCP-connected)** | Windsurf connects directly to Jenkins, GitHub, Confluence, Nexus via MCP servers | Full automation — MCPs are configured and network-accessible |
-| **Manual (Human-in-the-loop)** | User pastes logs, Confluence pages, Jenkins output into Windsurf prompts | MCPs unavailable, air-gapped environments, or when human review is required at every step |
+| **MCP mode** | Windsurf connects directly to Jenkins, GitHub, Confluence, Nexus via MCP servers | Full automation — MCPs are configured and network-accessible |
+| **Paste mode** | User pastes logs, Confluence pages, Jenkins output into Windsurf prompts | MCPs unavailable, air-gapped environments, or when human review is required at every step |
 
 ## Pipeline Stages
 
@@ -17,11 +17,11 @@ This pipeline implements the HSBC AI-Driven DevOps Auto-Fix workflow from Conflu
 
 ## Key Features
 
-- **Automated Build Fixes** — AI analyzes build failures and suggests fixes
+- **AI-Powered Build Fixes** — AI analyzes build failures and suggests fixes
 - **Smart PR Generation** — Creates pull requests for human review
 - **Kubernetes Deployment** — Handles containerization and deployment
 - **Self-Healing** — Automatically retries with AI-generated patches
-- **Dual-mode operation** — Fully automated OR manual paste workflows
+- **Two modes: MCP and Paste** — MCP OR Paste workflows
 
 ## Architecture
 
@@ -50,8 +50,8 @@ When MCPs are **not connected**, the user manually provides this data by pasting
 devops-auto-fix-pipeline/
 ├── .windsurf/
 │   ├── workflows/              # Windsurf Cascade workflow definitions
-│   │   ├── auto-fix-full.md    # Full automated pipeline (all MCPs)
-│   │   ├── auto-fix-manual.md  # Manual mode (human pastes data)
+│   │   ├── auto-fix-mcp.md     # MCP Workflow (all MCPs)
+│   │   ├── auto-fix-paste.md   # Paste Workflow (human pastes data)
 │   │   └── stages/             # Individual stage workflows
 │   │       ├── 01-detect.md
 │   │       ├── 02-analyse.md
@@ -82,7 +82,7 @@ devops-auto-fix-pipeline/
 │
 ├── docs/
 │   ├── MCP-INTEGRATION.md      # Detailed MCP breakout
-│   └── MANUAL-MODE.md          # How to use without MCPs
+│   └── PASTE-MODE.md          # How to use without MCPs
 │
 ├── mcp-config.json             # Windsurf MCP config (copy to ~/.codeium/windsurf/)
 └── README.md
@@ -90,7 +90,7 @@ devops-auto-fix-pipeline/
 
 ## Quick Start
 
-### Mode 1: Automated (MCP-connected)
+### Mode 1: MCP mode
 
 1. Copy MCP config:
    ```bash
@@ -99,15 +99,15 @@ devops-auto-fix-pipeline/
 2. Set environment variables (Jenkins URL, tokens, etc.)
 3. Open Windsurf and invoke the workflow:
    ```
-   @workflow auto-fix-full
+   @workflow auto-fix-mcp
    ```
 
-### Mode 2: Manual (Human-in-the-loop)
+### Mode 2: Paste mode
 
 1. Open Windsurf (no MCP config needed)
-2. Invoke the manual workflow:
+2. Invoke the Paste workflow:
    ```
-   @workflow auto-fix-manual
+   @workflow auto-fix-paste
    ```
 3. Paste your Jenkins build log when prompted
 4. Review AI analysis and proposed fix

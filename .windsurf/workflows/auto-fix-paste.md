@@ -1,6 +1,6 @@
-# Auto-Fix Pipeline - Manual Workflow
+# Auto-Fix Pipeline - Paste Workflow
 
-This workflow executes the complete auto-fix pipeline with human-in-the-loop interaction. Instead of using MCP integrations, the user provides data by pasting build logs, source files, and other relevant information at each stage.
+This workflow executes the complete auto-fix pipeline where the user pastes data at each stage. Instead of using MCP integrations, the user provides data by pasting build logs, source files, and other relevant information when prompted.
 
 Use this workflow when MCP servers are not available or when the user prefers hands-on control over the process.
 

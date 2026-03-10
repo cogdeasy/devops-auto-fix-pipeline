@@ -6,9 +6,9 @@ This project implements an AI-driven DevOps auto-fix pipeline. The pipeline auto
 
 ## Modes of Operation
 
-### Automated Mode (MCP-Connected)
+### MCP Mode
 
-When MCP tool servers are available and connected, operate in fully automated mode:
+When MCP tool servers are available and connected, operate in MCP mode:
 
 - **Always** use `jenkins-mcp` to fetch build statuses, console logs, and trigger validation builds.
 - **Always** use `confluence-mcp` to search for known issues, runbooks, and historical fix patterns.
@@ -16,9 +16,9 @@ When MCP tool servers are available and connected, operate in fully automated mo
 - **Always** use `nexus-mcp` to check artifact repositories for dependency resolution issues, version conflicts, and artifact availability.
 - Do not prompt the user for data that can be retrieved via MCP. Only fall back to manual input if an MCP call fails after retry.
 
-### Manual Mode (Human Paste)
+### Paste Mode
 
-When MCP integrations are not available, operate in manual/interactive mode:
+When MCP integrations are not available, operate in Paste mode:
 
 - At each stage where an MCP tool would normally be used, prompt the user to paste the equivalent data.
 - Provide clear instructions on what data is needed and in what format.
@@ -36,8 +36,8 @@ When MCP integrations are not available, operate in manual/interactive mode:
 
 - All generated fixes **must** be validated before a pull request is created.
 - Validation means: the patched code compiles successfully and passes the relevant test suite.
-- In automated mode, trigger a Jenkins build on the feature branch and wait for the result.
-- In manual mode, ask the user to run the build locally or trigger it and paste the result.
+- In MCP mode, trigger a Jenkins build on the feature branch and wait for the result.
+- In Paste mode, ask the user to run the build locally or trigger it and paste the result.
 - Do not create a PR for a fix that has not passed validation.
 
 ## Retry Mechanism
@@ -77,7 +77,7 @@ When MCP integrations are not available, operate in manual/interactive mode:
 
 ## Error Handling
 
-- If an MCP call fails, retry once after a brief pause. If it fails again, inform the user and offer to switch to manual mode for that specific step.
+- If an MCP call fails, retry once after a brief pause. If it fails again, inform the user and offer to switch to Paste mode for that specific step.
 - If the build log is empty or unparseable, ask the user for clarification rather than guessing.
 - If the diagnosis is ambiguous (multiple possible root causes), present all candidates to the user ranked by likelihood and ask for confirmation before proceeding.
 
