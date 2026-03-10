@@ -227,8 +227,13 @@ def build_pdf(md_text):
         margin-bottom: 10px;
         padding-bottom: 8px;
         border-bottom: 1px solid #E8E8E8;
+        page-break-before: always;
         page-break-after: avoid;
         string-set: section-title content();
+    }
+    /* First h2 after cover doesn't need extra page break */
+    .body-content > h2:first-child {
+        page-break-before: avoid;
     }
     h3 {
         font-size: 10.5pt;
