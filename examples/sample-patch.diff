@@ -1,0 +1,22 @@
+diff --git a/src/main/java/com/example/payment/service/PaymentProcessorService.java b/src/main/java/com/example/payment/service/PaymentProcessorService.java
+index 4a7e3f1..b9c82d4 100644
+--- a/src/main/java/com/example/payment/service/PaymentProcessorService.java
++++ b/src/main/java/com/example/payment/service/PaymentProcessorService.java
+@@ -8,6 +8,7 @@ import com.example.payment.model.Transaction;
+ import com.example.payment.model.PaymentRequest;
+ import com.example.payment.model.PaymentResult;
+ import com.example.payment.repository.TransactionRepository;
++import com.example.payment.validation.TransactionValidator;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ 
+@@ -44,7 +45,8 @@ public class PaymentProcessorService {
+ 
+     @Transactional
+     public PaymentResult processRefund(String transactionId, BigDecimal amount) {
+-        Transaction transaction = transactionRepository.findById(transactionId);
++        Transaction transaction = transactionRepository.findById(transactionId)
++                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found: " + transactionId));
+ 
+         TransactionValidator.validate(transaction);
+ 

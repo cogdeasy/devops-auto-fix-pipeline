@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "env": {}
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "env": {}
+    },
+    "jenkins": {
+      "command": "npx",
+      "args": ["tsx", "mcp-servers/jenkins-mcp/index.ts"],
+      "env": {
+        "JENKINS_URL": "https://jenkins.example.com",
+        "JENKINS_USER": "your-jenkins-username",
+        "JENKINS_TOKEN": "your-jenkins-api-token"
+      }
+    },
+    "confluence": {
+      "command": "npx",
+      "args": ["tsx", "mcp-servers/confluence-mcp/index.ts"],
+      "env": {
+        "CONFLUENCE_URL": "https://confluence.example.com",
+        "CONFLUENCE_USER": "your-confluence-username",
+        "CONFLUENCE_TOKEN": "your-confluence-api-token"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your-github-pat"
+      }
+    },
+    "nexus": {
+      "command": "npx",
+      "args": ["tsx", "mcp-servers/nexus-mcp/index.ts"],
+      "env": {
+        "NEXUS_URL": "https://nexus.example.com",
+        "NEXUS_TOKEN": "your-nexus-api-token"
+      }
+    }
+  }
+}

@@ -1,0 +1,571 @@
+# ===========================================================================
+# AI-Driven DevOps Auto-Fix Pipeline
+# ===========================================================================
+# Automated detection, analysis, patching, validation, and PR creation
+# for CI/CD build failures. Orchestrates MCP-connected tools (Jenkins,
+# GitHub, Confluence, Nexus) together with AI-based diagnosis and patch
+# generation to reduce mean-time-to-recovery (MTTR) for broken builds.
+#
+# Version : 1.0
+# Maintainer : DevOps Platform Team
+# ===========================================================================
+
+pipeline:
+  name: ai-auto-fix
+  version: "1.0"
+  description: >-
+    AI-Driven DevOps Auto-Fix Pipeline - automated detection, analysis,
+    patching, validation, and PR creation for build failures.
+
+  # -------------------------------------------------------------------------
+  # Global configuration
+  # -------------------------------------------------------------------------
+  config:
+    # Maximum number of end-to-end retries for the entire pipeline run
+    max_retries: 3
+
+    # Hard timeout for a single pipeline execution
+    timeout_minutes: 30
+
+    # When true, the pipeline pauses at every breakpoint and waits for a
+    # human operator to approve before continuing to the next stage.
+    require_human_approval: true
+
+    # When false, the created PR will NOT be auto-merged even if CI passes.
+    auto_merge: false
+
+    # Labels applied to every PR produced by this pipeline
+    labels:
+      - ai-auto-fix
+
+    # Notification preferences
+    notifications:
+      channels:
+        - type: slack
+          target: "#devops-alerts"
+        - type: email
+          target: "oncall-devops@company.internal"
+      on_events:
+        - pipeline_started
+        - breakpoint_hit
+        - pipeline_failed
+        - pipeline_completed
+
+    # Logging and observability
+    logging:
+      level: info            # debug | info | warn | error
+      structured: true       # emit JSON-structured log lines
+      retention_days: 90     # how long to keep run logs
+
+  # -------------------------------------------------------------------------
+  # Stage 1 -- Failure Detection
+  # -------------------------------------------------------------------------
+  stages:
+    - name: detect
+      display_name: "Failure Detection"
+      description: >-
+        Monitor a Jenkins job for failed builds, retrieve the console log,
+        and perform an initial classification of the failure type.
+
+      mcp_required: [jenkins]
+      mcp_optional: []
+      fallback: manual        # if Jenkins MCP is unavailable, pause for human
+
+      inputs:
+        - name: job_name
+          type: string
+          required: true
+          description: "Fully-qualified Jenkins job name to monitor."
+        - name: build_number
+          type: integer
+          required: false
+          description: >-
+            Specific build number to inspect. When omitted the most recent
+            failed build is selected automatically.
+
+      outputs:
+        - name: build_number
+          type: integer
+          description: "The resolved build number being analysed."
+        - name: failure_type
+          type: string
+          enum: [compilation, test, dependency, deployment, infrastructure, unknown]
+          description: "High-level classification of the build failure."
+        - name: build_log
+          type: text
+          description: "Full console output of the failed build."
+        - name: failed_at
+          type: timestamp
+          description: "ISO-8601 timestamp when the build failure occurred."
+        - name: error_message
+          type: string
+          description: "Extracted primary error message from the log."
+
+      actions:
+        # Step 1 -- Retrieve the list of recent failed builds
+        - id: get_failed_builds
+          description: "Query Jenkins for recent failures on the target job."
+          mcp: jenkins
+          tool: get_failed_builds
+          params:
+            job_name: "{{job_name}}"
+            limit: 5
+
+        # Step 2 -- Download the full console log for the target build
+        - id: get_build_log
+          description: "Fetch the console output for the identified build."
+          mcp: jenkins
+          tool: get_build_log
+          params:
+            job_name: "{{job_name}}"
+            build_number: "{{build_number}}"
+
+        # Step 3 -- Classify the failure using a lightweight AI prompt
+        - id: classify_failure
+          description: "Use AI to classify the failure into a known category."
+          type: ai_prompt
+          prompt_template: "prompts/classify-failure-prompt.md"
+          context:
+            build_log: "{{build_log}}"
+
+      breakpoint:
+        condition: "failure_type == 'unknown'"
+        message: >-
+          Unable to classify the failure type automatically.
+          Human review is required before proceeding.
+
+    # -----------------------------------------------------------------------
+    # Stage 2 -- Log Analysis and Diagnosis
+    # -----------------------------------------------------------------------
+    - name: analyse
+      display_name: "Log Analysis and Diagnosis"
+      description: >-
+        Perform deep analysis of the build log, cross-reference known issues,
+        check dependency metadata, and produce a structured diagnosis with a
+        confidence score.
+
+      mcp_required: []
+      mcp_optional: [confluence, nexus]
+      fallback: manual
+
+      inputs:
+        - name: build_log
+          type: text
+          source: "detect.build_log"
+        - name: failure_type
+          type: string
+          source: "detect.failure_type"
+        - name: error_message
+          type: string
+          source: "detect.error_message"
+
+      outputs:
+        - name: diagnosis
+          type: object
+          description: "Structured diagnosis produced by the AI analysis step."
+          properties:
+            root_cause: string
+            affected_files: "list[string]"
+            error_lines: "list[object]"
+            confidence: float           # 0.0 - 1.0
+            known_issue_match: string   # Confluence page ID or empty
+            suggested_fix_summary: string
+        - name: recommended_action
+          type: string
+          enum: [auto_fix, manual_review, escalate]
+          description: >-
+            Next action recommendation based on diagnosis confidence
+            and severity.
+
+      actions:
+        # Optional -- Search the internal knowledge base for matching issues
+        - id: search_known_issues
+          description: "Look up Confluence for previously documented fixes."
+          mcp: confluence
+          tool: search_known_issues
+          optional: true
+          params:
+            query: "{{failure_type}} {{error_message}}"
+            space_key: "DEVOPS"
+            max_results: 5
+
+        # Optional -- Verify dependency versions in the artifact repository
+        - id: check_dependencies
+          description: "Search Nexus for dependency version metadata."
+          mcp: nexus
+          tool: search_artifacts
+          optional: true
+          params:
+            group_id: "{{affected_group_id}}"
+            format: "maven2"
+
+        # Core -- AI-driven root cause analysis
+        - id: ai_analyse
+          description: >-
+            Send the build log, failure classification, and any knowledge-base
+            matches to the AI model for structured root cause analysis.
+          type: ai_prompt
+          prompt_template: "prompts/analyse-prompt.md"
+          context:
+            build_log: "{{build_log}}"
+            failure_type: "{{failure_type}}"
+            known_issues: "{{search_known_issues.results}}"
+            dependency_info: "{{check_dependencies.results}}"
+          model_preferences:
+            temperature: 0.2
+            max_tokens: 4096
+
+      breakpoint:
+        condition: "diagnosis.confidence < 0.7 or recommended_action == 'escalate'"
+        message: >-
+          Low confidence diagnosis ({{diagnosis.confidence}}) or escalation
+          required. Please review the analysis before proceeding.
+
+    # -----------------------------------------------------------------------
+    # Stage 3 -- Patch Generation
+    # -----------------------------------------------------------------------
+    - name: patch
+      display_name: "Patch Generation"
+      description: >-
+        Fetch the affected source files from GitHub, optionally review
+        similar past PRs, and use the AI model to generate a unified diff
+        that addresses the diagnosed root cause.
+
+      mcp_required: [github]
+      mcp_optional: []
+      fallback: manual
+
+      inputs:
+        - name: diagnosis
+          type: object
+          source: "analyse.diagnosis"
+        - name: repository
+          type: string
+          required: true
+          description: "GitHub repository in owner/repo format."
+        - name: base_branch
+          type: string
+          default: "main"
+          description: "Branch to base the fix on."
+
+      outputs:
+        - name: patch
+          type: diff
+          description: "Unified diff representing the proposed fix."
+        - name: affected_files
+          type: "list[string]"
+          description: "List of file paths modified by the patch."
+        - name: fix_description
+          type: string
+          description: "Human-readable one-line summary of the fix."
+        - name: fix_details
+          type: string
+          description: "Detailed explanation of all changes made."
+
+      actions:
+        # Step 1 -- Retrieve current source for each affected file
+        - id: fetch_source
+          description: "Download affected source files from the repository."
+          mcp: github
+          tool: get_file_contents
+          params:
+            repo: "{{repository}}"
+            path: "{{diagnosis.affected_files}}"
+            ref: "{{base_branch}}"
+
+        # Step 2 -- Look for previously merged PRs with similar fixes
+        - id: search_similar_prs
+          description: "Search for prior PRs that addressed similar failures."
+          mcp: github
+          tool: search_prs
+          params:
+            repo: "{{repository}}"
+            query: "{{diagnosis.root_cause}}"
+            state: "closed"
+            sort: "updated"
+            limit: 5
+
+        # Step 3 -- Generate the actual patch via AI
+        - id: ai_generate_patch
+          description: >-
+            Provide the source files, diagnosis, and any relevant prior PRs
+            to the AI model and request a unified diff as output.
+          type: ai_prompt
+          prompt_template: "prompts/patch-prompt.md"
+          context:
+            source_files: "{{fetch_source.results}}"
+            diagnosis: "{{diagnosis}}"
+            similar_prs: "{{search_similar_prs.results}}"
+          model_preferences:
+            temperature: 0.1
+            max_tokens: 8192
+
+      breakpoint:
+        condition: "len(affected_files) > 5"
+        message: >-
+          The generated patch modifies more than 5 files
+          ({{len(affected_files)}} affected). Human review is strongly
+          recommended before proceeding to validation.
+
+    # -----------------------------------------------------------------------
+    # Stage 4 -- Build Validation
+    # -----------------------------------------------------------------------
+    - name: validate
+      display_name: "Build Validation"
+      description: >-
+        Apply the generated patch to a temporary branch, trigger a full CI
+        build in Jenkins, and confirm that the fix resolves the original
+        failure without introducing regressions.
+
+      mcp_required: [jenkins]
+      mcp_optional: []
+      fallback: manual
+
+      inputs:
+        - name: patch
+          type: diff
+          source: "patch.patch"
+        - name: job_name
+          type: string
+          source: "detect.inputs.job_name"
+        - name: repository
+          type: string
+          source: "patch.inputs.repository"
+        - name: fix_branch
+          type: string
+          description: "Temporary branch name where the patch is applied."
+
+      outputs:
+        - name: build_result
+          type: string
+          enum: [success, failure]
+          description: "Outcome of the validation build."
+        - name: test_results
+          type: object
+          description: "Structured test report (passed, failed, skipped counts)."
+          properties:
+            total: integer
+            passed: integer
+            failed: integer
+            skipped: integer
+            failure_details: "list[object]"
+        - name: build_url
+          type: string
+          description: "URL of the Jenkins validation build."
+        - name: build_duration_seconds
+          type: integer
+          description: "Wall-clock duration of the validation build."
+
+      actions:
+        # Step 1 -- Dry-run the patch to check it applies cleanly
+        - id: apply_patch
+          description: "Verify the patch applies without conflicts."
+          type: local
+          command: "git apply --check {{patch_file}}"
+          working_directory: "{{workspace}}"
+
+        # Step 2 -- Trigger a Jenkins build on the fix branch
+        - id: trigger_build
+          description: "Start a Jenkins build for the fix branch."
+          mcp: jenkins
+          tool: trigger_build
+          params:
+            job_name: "{{job_name}}"
+            parameters:
+              BRANCH: "{{fix_branch}}"
+              RUN_FULL_TESTS: "true"
+
+        # Step 3 -- Poll build status until completion
+        - id: wait_for_build
+          description: "Wait for the validation build to complete."
+          mcp: jenkins
+          tool: get_build_status
+          params:
+            job_name: "{{job_name}}"
+            build_number: "{{triggered_build_number}}"
+          retry:
+            max_attempts: 30
+            interval_seconds: 30
+            backoff_multiplier: 1.0
+
+        # Step 4 -- Collect test results for the PR body
+        - id: collect_test_results
+          description: "Retrieve structured test results from the build."
+          mcp: jenkins
+          tool: get_test_report
+          params:
+            job_name: "{{job_name}}"
+            build_number: "{{triggered_build_number}}"
+
+      breakpoint:
+        condition: "build_result == 'failure'"
+        message: >-
+          Validation build failed. The auto-generated patch did not resolve
+          the issue. Review the build log and decide whether to retry with
+          an amended patch or escalate to a human engineer.
+
+      # If the validation build fails, attempt a second AI-assisted fix
+      on_failure:
+        action: retry_with_ai
+        max_retries: 2
+        prompt_template: "prompts/validate-retry-prompt.md"
+        context:
+          original_patch: "{{patch}}"
+          validation_log: "{{wait_for_build.console_log}}"
+          test_failures: "{{collect_test_results.failure_details}}"
+
+    # -----------------------------------------------------------------------
+    # Stage 5 -- Pull Request Creation
+    # -----------------------------------------------------------------------
+    - name: pr_create
+      display_name: "Pull Request Creation"
+      description: >-
+        Push the validated patch to a dedicated branch, open a pull request
+        with a detailed description, attach relevant metadata (build links,
+        diagnosis, test results), and assign reviewers.
+
+      mcp_required: [github]
+      mcp_optional: []
+      fallback: manual
+
+      inputs:
+        - name: patch
+          type: diff
+          source: "patch.patch"
+        - name: fix_description
+          type: string
+          source: "patch.fix_description"
+        - name: fix_details
+          type: string
+          source: "patch.fix_details"
+        - name: diagnosis
+          type: object
+          source: "analyse.diagnosis"
+        - name: build_url
+          type: string
+          source: "validate.build_url"
+        - name: test_results
+          type: object
+          source: "validate.test_results"
+        - name: repository
+          type: string
+          source: "patch.inputs.repository"
+        - name: base_branch
+          type: string
+          source: "patch.inputs.base_branch"
+          default: "main"
+
+      outputs:
+        - name: pr_url
+          type: string
+          description: "URL of the created pull request."
+        - name: pr_number
+          type: integer
+          description: "Numeric ID of the created pull request."
+
+      actions:
+        # Step 1 -- Create a feature branch for the fix
+        - id: create_branch
+          description: "Create a new branch for the auto-fix changes."
+          mcp: github
+          tool: create_branch
+          params:
+            repo: "{{repository}}"
+            branch: "auto-fix/{{detect.build_number}}-{{timestamp}}"
+            from: "{{base_branch}}"
+
+        # Step 2 -- Commit the patched files to the new branch
+        - id: commit_changes
+          description: "Push the patched files as a single commit."
+          mcp: github
+          tool: create_or_update_file
+          params:
+            repo: "{{repository}}"
+            branch: "{{fix_branch}}"
+            files: "{{patch.affected_files}}"
+            message: "fix: {{fix_description}}"
+
+        # Step 3 -- Open the pull request
+        - id: create_pr
+          description: "Open a pull request with full context and metadata."
+          mcp: github
+          tool: create_pull_request
+          params:
+            repo: "{{repository}}"
+            title: "fix: {{fix_description}}"
+            body_template: "prompts/pr-body-template.md"
+            body_variables:
+              fix_description: "{{fix_description}}"
+              fix_details: "{{fix_details}}"
+              root_cause: "{{diagnosis.root_cause}}"
+              confidence: "{{diagnosis.confidence}}"
+              affected_files: "{{patch.affected_files}}"
+              build_url: "{{build_url}}"
+              test_total: "{{test_results.total}}"
+              test_passed: "{{test_results.passed}}"
+              test_failed: "{{test_results.failed}}"
+              test_skipped: "{{test_results.skipped}}"
+              original_build: "{{detect.build_number}}"
+              failure_type: "{{detect.failure_type}}"
+            base: "{{base_branch}}"
+            head: "{{fix_branch}}"
+            labels:
+              - ai-auto-fix
+              - "failure-type/{{detect.failure_type}}"
+            reviewers: "{{auto_reviewers}}"
+            draft: false
+
+        # Step 4 -- Post a summary comment with diagnostics
+        - id: post_summary_comment
+          description: "Add a structured comment summarising the AI analysis."
+          mcp: github
+          tool: add_issue_comment
+          params:
+            repo: "{{repository}}"
+            issue_number: "{{pr_number}}"
+            body_template: "prompts/pr-comment-template.md"
+
+      breakpoint:
+        condition: "always"
+        message: >-
+          Pull request #{{pr_number}} has been created and is awaiting
+          human review and merge approval.
+
+  # -------------------------------------------------------------------------
+  # Global error handling
+  # -------------------------------------------------------------------------
+  error_handling:
+    # What to do when a required MCP server is unreachable
+    on_mcp_unavailable: "fallback_to_manual"
+
+    # What to do when the AI model returns an error or unusable output
+    on_ai_failure: "pause_and_notify"
+
+    # What to do when the pipeline exceeds timeout_minutes
+    on_timeout: "abort_and_notify"
+
+    # What to do on any unhandled exception
+    on_unhandled_error: "abort_and_notify"
+
+    # Primary notification channel for all error events
+    notification_channel: "slack"
+    notification_target: "#devops-alerts"
+
+    # Cleanup actions executed regardless of pipeline outcome
+    cleanup:
+      - description: "Remove temporary workspace and scratch branches."
+        action: cleanup_workspace
+      - description: "Persist pipeline run metadata for audit trail."
+        action: save_run_metadata
+        params:
+          retention_days: 90
+
+  # -------------------------------------------------------------------------
+  # Metadata
+  # -------------------------------------------------------------------------
+  metadata:
+    created_by: "devops-platform-team"
+    created_at: "2025-01-01T00:00:00Z"
+    last_modified: "2025-01-01T00:00:00Z"
+    documentation: "https://wiki.internal/devops/auto-fix-pipeline"
+    source_repository: "https://github.com/internal/devops-auto-fix-pipeline"

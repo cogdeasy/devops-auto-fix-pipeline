@@ -1,0 +1,102 @@
+Started by an SCM change
+Running as SYSTEM
+[EnvInject] - Loading node environment variables.
+Building on agent node-linux-04 in workspace /var/lib/jenkins/workspace/payment-service_main
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout)
+[Pipeline] checkout
+The recommended git tool is: NONE
+using credential github-service-account
+Cloning the remote Git repository
+Cloning repository https://github.com/example-org/payment-service.git
+ > git init /var/lib/jenkins/workspace/payment-service_main
+ > git fetch --tags --force --progress -- https://github.com/example-org/payment-service.git +refs/heads/*:refs/remotes/origin/*
+ > git config remote.origin.url https://github.com/example-org/payment-service.git
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+ > git rev-parse refs/remotes/origin/main^{commit}
+Checking out Revision a3f8c2d1e9b74650821dfae3c9176b4f02e8a5d7 (refs/remotes/origin/main)
+ > git checkout -f a3f8c2d1e9b74650821dfae3c9176b4f02e8a5d7
+Commit message: "feat: add transaction lookup to payment processor"
+First time build. Skipping changelog.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build)
+[Pipeline] sh
++ mvn clean compile -B -U
+[INFO] Scanning for projects...
+[INFO]
+[INFO] --- maven-clean-plugin:3.3.2:clean (default-clean) @ payment-service ---
+[INFO] Deleting /var/lib/jenkins/workspace/payment-service_main/target
+[INFO]
+[INFO] ------------------< com.example:payment-service >-------------------
+[INFO] Building payment-service 2.4.1-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:3.3.1:resources (default-resources) @ payment-service ---
+[INFO] Copying 3 resources from src/main/resources to target/classes
+[INFO]
+[INFO] --- maven-compiler-plugin:3.11.0:compile (default-compile) @ payment-service ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 47 source files to /var/lib/jenkins/workspace/payment-service_main/target/classes
+[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa/3.2.1/spring-boot-starter-data-jpa-3.2.1.pom
+[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-data-jpa/3.2.1/spring-boot-starter-data-jpa-3.2.1.pom (2.8 kB at 45 kB/s)
+[INFO] Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-web/3.2.1/spring-boot-starter-web-3.2.1.pom
+[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-web/3.2.1/spring-boot-starter-web-3.2.1.pom (3.1 kB at 52 kB/s)
+[INFO] Downloading from central: https://repo.maven.apache.org/maven2/com/stripe/stripe-java/24.3.0/stripe-java-24.3.0.jar
+[INFO] Downloaded from central: https://repo.maven.apache.org/maven2/com/stripe/stripe-java/24.3.0/stripe-java-24.3.0.jar (1.2 MB at 3.4 MB/s)
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR :
+[INFO] -------------------------------------------------------------
+[ERROR] /var/lib/jenkins/workspace/payment-service_main/src/main/java/com/example/payment/service/PaymentProcessorService.java:[47,30] error: incompatible types: Optional<Transaction> cannot be converted to Transaction
+    Transaction transaction = transactionRepository.findById(transactionId);
+                              ^
+  required: Transaction
+  found:    Optional<Transaction>
+[ERROR] /var/lib/jenkins/workspace/payment-service_main/src/main/java/com/example/payment/service/PaymentProcessorService.java:[52,9] error: cannot find symbol
+    TransactionValidator.validate(transaction);
+    ^
+  symbol:   variable TransactionValidator
+  location: class PaymentProcessorService
+[INFO] 2 errors
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14.328 s
+[INFO] Finished at: 2024-01-15T09:23:47-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project payment-service: Compilation failure: Compilation failure:
+[ERROR] /var/lib/jenkins/workspace/payment-service_main/src/main/java/com/example/payment/service/PaymentProcessorService.java:[47,30] incompatible types: java.util.Optional<com.example.payment.model.Transaction> cannot be converted to com.example.payment.model.Transaction
+[ERROR] /var/lib/jenkins/workspace/payment-service_main/src/main/java/com/example/payment/service/PaymentProcessorService.java:[52,9] cannot find symbol
+[ERROR]   symbol:   variable TransactionValidator
+[ERROR]   location: class com.example.payment.service.PaymentProcessorService
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] https://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Post Actions)
+[Pipeline] echo
+Build failed. Sending notification to #team-payments Slack channel.
+[Pipeline] mail
+Sending email to: team-payments@example.com
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+Build step 'Execute shell' marked build as failure
+Recording test results
+No test report files were found. Configuration error?
+Finished: FAILURE
+Build duration: 22.6 seconds
+Build timestamp: 2024-01-15 09:23:25 UTC
+Jenkins ver. 2.426.2
+Job: payment-service/main
+Build: #1847
+Node: node-linux-04

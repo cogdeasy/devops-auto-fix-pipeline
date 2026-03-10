@@ -1,0 +1,15 @@
+{
+  "name": "@devops-pipeline/jenkins-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Jenkins CI/CD integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npx tsx index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "typescript": "^5.7.3"
+  }
+}
