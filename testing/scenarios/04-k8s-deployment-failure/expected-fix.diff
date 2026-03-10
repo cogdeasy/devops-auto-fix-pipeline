@@ -1,0 +1,18 @@
+--- a/k8s/deployment.yaml
++++ b/k8s/deployment.yaml
+@@ -34,7 +34,7 @@
+       containers:
+         - name: notification-service
+-          image: nexus-docker.internal.hsbc/notification-service:v2.4.0-rc1
++          image: nexus-docker.internal.hsbc/notification-service:v2.4.0
+           imagePullPolicy: Always
+           ports:
+             - name: http
+@@ -66,7 +66,7 @@
+             limits:
+               cpu: 500m
+-              memory: 256Mi
++              memory: 512Mi
+           readinessProbe:
+             httpGet:
+               path: /actuator/health/readiness

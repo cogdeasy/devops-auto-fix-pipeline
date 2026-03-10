@@ -1,0 +1,35 @@
+--- a/src/controllers/__tests__/userController.test.js
++++ b/src/controllers/__tests__/userController.test.js
+@@ -39,10 +39,10 @@
+ 
+       expect(response.status).toBe(200);
+-      expect(response.body).toHaveProperty('user');          // FAIL — should be 'data'
+-      expect(response.body.user).toBeDefined();              // FAIL — user is undefined
+-      expect(response.body.user.id).toBe('usr_a1b2c3d4');   // FAIL (cascading)
+-      expect(response.body.user.email).toBe('alice@example.com');
++      expect(response.body).toHaveProperty('data');
++      expect(response.body.data).toBeDefined();
++      expect(response.body.data.id).toBe('usr_a1b2c3d4');
++      expect(response.body.data.email).toBe('alice@example.com');
+     });
+ 
+     it('should return 404 for missing user', async () => {
+@@ -52,7 +52,7 @@
+       expect(response.status).toBe(404);
+       expect(response.body).toEqual({
+-        user: null,                                           // FAIL — key is now 'data'
++        data: null,
+         error: 'User not found',
+       });
+     });
+@@ -70,8 +70,8 @@
+ 
+       expect(response.status).toBe(200);
+-      expect(response.body).toHaveProperty('user');          // FAIL — should be 'data'
+-      expect(response.body.user.name).toBe('Alice Smith');   // FAIL — user is undefined
+-      expect(response.body.user.email).toBe('alice@example.com');
++      expect(response.body).toHaveProperty('data');
++      expect(response.body.data.name).toBe('Alice Smith');
++      expect(response.body.data.email).toBe('alice@example.com');
+     });
+   });

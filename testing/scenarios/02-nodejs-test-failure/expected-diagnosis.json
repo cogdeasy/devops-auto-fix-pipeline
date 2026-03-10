@@ -1,0 +1,84 @@
+{
+  "scenario_id": "02-nodejs-test-failure",
+  "generated_at": "2025-01-20T14:35:00Z",
+  "build": {
+    "system": "jenkins",
+    "job_name": "user-service-ci",
+    "build_number": 1034,
+    "branch": "feature/standardise-api-responses",
+    "commit": "a3f7c2e8b91d4506e8af12d3c7b5609841e2fa3c",
+    "result": "FAILURE",
+    "trigger": "github-push",
+    "author": "jthompson"
+  },
+  "failure_stage": "Test",
+  "failure_type": "test_assertion",
+  "language": "javascript",
+  "framework": {
+    "runtime": "node",
+    "test_runner": "jest",
+    "test_runner_version": "29.7",
+    "app_framework": "express"
+  },
+  "test_summary": {
+    "suites_total": 10,
+    "suites_failed": 1,
+    "tests_total": 50,
+    "tests_passed": 47,
+    "tests_failed": 3,
+    "tests_skipped": 0
+  },
+  "root_cause": {
+    "category": "stale_tests_after_refactor",
+    "summary": "Controller response envelope was refactored from { user: ... } to { data: ... } but the test assertions were not updated to match the new response shape.",
+    "detail": "The commit 'refactor: standardise API response envelope to use { data } key' changed userController.js to return responses with a 'data' key instead of 'user'. Three tests in userController.test.js still assert against the old 'user' key, causing failures due to undefined property access.",
+    "introduced_by_commit": "a3f7c2e8b91d4506e8af12d3c7b5609841e2fa3c"
+  },
+  "failing_tests": [
+    {
+      "suite": "User Controller > GET /api/users/:id",
+      "name": "should return user data",
+      "file": "src/controllers/__tests__/userController.test.js",
+      "line": 43,
+      "error_type": "expect(received).toBeDefined()",
+      "expected": "defined value (user object)",
+      "received": "undefined",
+      "explanation": "response.body.user is undefined because the controller now returns { data: user } instead of { user: user }."
+    },
+    {
+      "suite": "User Controller > GET /api/users/:id",
+      "name": "should return 404 for missing user",
+      "file": "src/controllers/__tests__/userController.test.js",
+      "line": 54,
+      "error_type": "expect(received).toEqual(expected)",
+      "expected": "{ user: null, error: 'User not found' }",
+      "received": "{ data: null, error: 'User not found' }",
+      "explanation": "The response object has a 'data' key instead of 'user'. The toEqual deep-equality check fails because the key names differ."
+    },
+    {
+      "suite": "User Controller > PUT /api/users/:id",
+      "name": "should update user",
+      "file": "src/controllers/__tests__/userController.test.js",
+      "line": 75,
+      "error_type": "TypeError",
+      "expected": "response.body.user.name === 'Alice Smith'",
+      "received": "Cannot read properties of undefined (reading 'name')",
+      "explanation": "response.body.user is undefined, so accessing .name throws a TypeError. The test should read response.body.data.name."
+    }
+  ],
+  "fix": {
+    "strategy": "update_test_assertions",
+    "target_file": "src/controllers/__tests__/userController.test.js",
+    "changes_required": 3,
+    "description": "Replace all occurrences of 'response.body.user' with 'response.body.data' and update toHaveProperty('user') to toHaveProperty('data') and the toEqual object key from 'user' to 'data' in the three failing test cases.",
+    "affected_lines": [42, 43, 44, 45, 55, 74, 75, 76],
+    "production_code_correct": true,
+    "note": "The controller (userController.js) is correct and should NOT be modified. Only the test file needs updating."
+  },
+  "validation": {
+    "command": "npm test",
+    "expected_exit_code": 0,
+    "expected_tests_passed": 50,
+    "expected_tests_failed": 0
+  }
+}

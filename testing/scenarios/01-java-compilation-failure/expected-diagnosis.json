@@ -1,0 +1,47 @@
+{
+  "error_type": "compilation",
+  "language": "java",
+  "build_tool": "maven",
+  "root_cause": "The payment-commons library was upgraded from 2.2.1 to 2.3.0, which changed the return type of PaymentCommons.getAmount(String) from java.lang.String to java.math.BigDecimal. Two source files still assign the return value to String variables and pass it to methods expecting String parameters, causing incompatible-type compilation errors.",
+  "trigger": {
+    "commit": "a3f8c7d2e91b4056af83ed12bb5690c1ee4a7f03",
+    "commit_message": "chore(deps): bump payment-commons from 2.2.1 to 2.3.0",
+    "author": "j.chen"
+  },
+  "errors": [
+    {
+      "file": "src/main/java/com/acme/payment/TransactionService.java",
+      "line": 45,
+      "column": 24,
+      "message": "incompatible types: java.math.BigDecimal cannot be converted to java.lang.String",
+      "symbol_kind": "variable",
+      "symbol": "amount"
+    },
+    {
+      "file": "src/main/java/com/acme/payment/PaymentProcessor.java",
+      "line": 112,
+      "column": 42,
+      "message": "method processAmount(java.lang.String) in class com.acme.payment.util.PaymentHelper cannot be applied to given types; required: java.lang.String, found: java.math.BigDecimal",
+      "symbol_kind": "method",
+      "symbol": "processAmount"
+    }
+  ],
+  "affected_files": [
+    "src/main/java/com/acme/payment/TransactionService.java",
+    "src/main/java/com/acme/payment/PaymentProcessor.java"
+  ],
+  "severity": "major",
+  "known_issue": {
+    "found": true,
+    "id": "KI-2026-089",
+    "title": "BigDecimal conversion errors after payment-commons 2.3.0 upgrade",
+    "link": "https://confluence.acme-corp.internal/display/PLAT/KI-2026-089",
+    "status": "active",
+    "recommended_resolution": "option_a"
+  },
+  "suggested_approach": "Change local variable types from String to BigDecimal where the return value of PaymentCommons.getAmount() is stored. Add 'import java.math.BigDecimal' to both files. Where the value must be passed as a String to downstream methods (e.g., PaymentHelper.processAmount), convert explicitly using .toPlainString(). Do not use .toString() as it may produce scientific notation for extreme values.",
+  "fix_complexity": "low",
+  "estimated_files_to_change": 2,
+  "risk_assessment": "Low risk. The fix is a mechanical type change with explicit String conversion at API boundaries. Existing unit tests should pass without modification since the String representation of the amounts remains identical.",
+  "validation_command": "mvn clean install -B"
+}

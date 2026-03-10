@@ -1,0 +1,97 @@
+{
+  "pipeline_run_id": "auto-fix-20240115-142305-056",
+  "job_name": "notification-service-deploy",
+  "build_number": 56,
+  "build_url": "https://jenkins.internal.hsbc/job/platform-services/job/notification-service-deploy/56/",
+  "timestamp": "2024-01-15T14:30:52Z",
+
+  "error_type": "deployment",
+  "failure_stage": "Deploy to Staging",
+
+  "diagnosis": {
+    "root_cause": "Kubernetes deployment failed due to two misconfigurations in k8s/deployment.yaml: (1) the container image tag 'v2.4.0-rc1' does not exist in the Nexus Docker registry — the CI pipeline built and pushed 'v2.4.0' but the manifest references a stale release-candidate tag; (2) the memory resource request (512Mi) exceeds the memory limit (256Mi), which violates Kubernetes resource constraint rules.",
+    "confidence": 0.95,
+    "severity": "high",
+    "category": "infrastructure/kubernetes",
+
+    "errors": [
+      {
+        "id": "IMG_TAG_NOT_FOUND",
+        "type": "image_pull_failure",
+        "message": "Failed to pull image \"nexus-docker.internal.hsbc/notification-service:v2.4.0-rc1\": rpc error: code = NotFound",
+        "file": "k8s/deployment.yaml",
+        "line": 37,
+        "field": "spec.template.spec.containers[0].image",
+        "current_value": "nexus-docker.internal.hsbc/notification-service:v2.4.0-rc1",
+        "expected_value": "nexus-docker.internal.hsbc/notification-service:v2.4.0",
+        "evidence": "The Docker build stage tagged the image as v2.4.0 and pushed it successfully. The deployment manifest references v2.4.0-rc1 which was never pushed to the registry."
+      },
+      {
+        "id": "MEM_REQUEST_GT_LIMIT",
+        "type": "resource_misconfiguration",
+        "message": "Invalid value for \"memory\": request 512Mi is greater than limit 256Mi",
+        "file": "k8s/deployment.yaml",
+        "line": 69,
+        "field": "spec.template.spec.containers[0].resources.limits.memory",
+        "current_value": "256Mi",
+        "expected_value": "512Mi",
+        "evidence": "Kubernetes requires that resource requests do not exceed resource limits. The JAVA_OPTS specify -Xmx512m, so the memory limit must be at least 512Mi to accommodate the JVM heap plus overhead."
+      }
+    ],
+
+    "affected_files": [
+      "k8s/deployment.yaml"
+    ],
+
+    "suggested_fix_summary": "Update the image tag from v2.4.0-rc1 to v2.4.0 to match the tag pushed by CI, and increase the memory limit from 256Mi to 512Mi to satisfy the resource request constraint and align with JVM heap settings.",
+
+    "known_issue_match": null,
+    "similar_incidents": [
+      {
+        "job": "user-service-deploy",
+        "build": 203,
+        "date": "2023-11-08",
+        "similarity": 0.82,
+        "resolution": "Corrected image tag mismatch between CI build and deployment manifest"
+      }
+    ]
+  },
+
+  "recommended_action": "auto_fix",
+
+  "fix": {
+    "description": "Fix image tag and memory limit in deployment manifest",
+    "changes": [
+      {
+        "file": "k8s/deployment.yaml",
+        "line": 37,
+        "action": "replace",
+        "old": "image: nexus-docker.internal.hsbc/notification-service:v2.4.0-rc1",
+        "new": "image: nexus-docker.internal.hsbc/notification-service:v2.4.0",
+        "reason": "Align image tag with the version actually pushed to the registry by the CI build stage"
+      },
+      {
+        "file": "k8s/deployment.yaml",
+        "line": 69,
+        "action": "replace",
+        "old": "memory: 256Mi",
+        "new": "memory: 512Mi",
+        "reason": "Memory limit must be >= memory request (512Mi). Also aligns with JAVA_OPTS -Xmx512m which requires at least 512Mi for the JVM heap"
+      }
+    ],
+    "patch_file": "expected-fix.diff",
+    "risk_level": "low",
+    "risk_rationale": "Both changes are configuration-only fixes to k8s/deployment.yaml. No application code is modified. The image tag correction points to a known-good image that passed CI. The memory limit increase aligns with the existing JVM configuration."
+  },
+
+  "validation": {
+    "steps": [
+      "Apply the patched deployment.yaml to the staging cluster",
+      "Verify pods reach Running state with kubectl get pods -l app=notification-service",
+      "Confirm image pull succeeds for nexus-docker.internal.hsbc/notification-service:v2.4.0",
+      "Verify readiness probe passes on /actuator/health/readiness",
+      "Run kubectl rollout status deployment/notification-service --timeout=300s"
+    ],
+    "expected_outcome": "All 3 replicas reach Ready state; rollout completes within progress deadline"
+  }
+}

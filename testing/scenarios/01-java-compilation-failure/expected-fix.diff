@@ -1,0 +1,47 @@
+diff --git a/src/main/java/com/acme/payment/TransactionService.java b/src/main/java/com/acme/payment/TransactionService.java
+index 8a3d4f1..c7e2b09 100644
+--- a/src/main/java/com/acme/payment/TransactionService.java
++++ b/src/main/java/com/acme/payment/TransactionService.java
+@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
+ 
+ import java.time.Instant;
+ import java.util.Optional;
++import java.math.BigDecimal;
+ 
+ /**
+  * Core service responsible for managing payment transactions.
+@@ -42,9 +43,9 @@ public class TransactionService {
+      * @return formatted amount string for the given transaction
+      */
+     public String getFormattedAmount(String txnId) {
+-        String amount = commons.getAmount(txnId);  // BUG: getAmount() now returns BigDecimal since payment-commons 2.3.0
++        BigDecimal amount = commons.getAmount(txnId);
+         log.info("Retrieved amount {} for transaction {}", amount, txnId);
+-        return String.format("$%s", amount);
++        return String.format("$%s", amount.toPlainString());
+     }
+ 
+     /**
+diff --git a/src/main/java/com/acme/payment/PaymentProcessor.java b/src/main/java/com/acme/payment/PaymentProcessor.java
+index 1b5f3a2..9d8e4c7 100644
+--- a/src/main/java/com/acme/payment/PaymentProcessor.java
++++ b/src/main/java/com/acme/payment/PaymentProcessor.java
+@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
+ 
+ import java.time.Duration;
+ import java.time.Instant;
++import java.math.BigDecimal;
+ import java.util.Objects;
+ 
+ /**
+@@ -108,8 +109,8 @@ public class PaymentProcessor {
+      */
+     private PaymentResult submitToGateway(PaymentRequest request, String idempotencyKey) {
+         String txnId = request.getTransactionId();
+-        String amt = commons.getAmount(txnId);
+-        PaymentHelper.processAmount(amt);  // BUG: amt is now BigDecimal, processAmount expects String
++        BigDecimal amt = commons.getAmount(txnId);
++        PaymentHelper.processAmount(amt.toPlainString());
+ 
+         log.debug("Amount validated: {} for txnId={}", amt, txnId);
+ 
