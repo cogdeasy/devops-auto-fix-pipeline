@@ -6,15 +6,15 @@
 # ]
 # ///
 """
-Generate HSBC-branded .pdf from testing/WALKTHROUGH.md
+Generate HSBC-branded .pdf from testing/E2E-GUIDE.md
 Styled to match HSBC-Pilot-Progress.pdf
 """
 
 import re, pathlib, textwrap, base64
 
 BASE = pathlib.Path(__file__).parent
-MD_FILE = BASE / "testing" / "WALKTHROUGH.md"
-PDF_OUT = BASE / "testing" / "WALKTHROUGH.pdf"
+MD_FILE = BASE / "testing" / "E2E-GUIDE.md"
+PDF_OUT = BASE / "testing" / "AI-Auto-Fix-Pipeline-E2E-Guide.pdf"
 
 # Logos — reuse from hsbc-pilot project if available, otherwise text fallback
 HSBC_LOGO = pathlib.Path.home() / "Code" / "work" / "hsbc-pilot" / "assets" / "hsbc-logo.png"
@@ -70,9 +70,9 @@ def build_pdf(md_text):
         f'<div class="cover-bar"></div>'
         f'{logo_html}'
         f'<div class="cover-body">'
-        f'<div class="cover-title">AI-Driven DevOps<br/>Auto-Fix Pipeline</div>'
+        f'<div class="cover-title">AI Auto-Fix Pipeline</div>'
         f'<div class="cover-rule"></div>'
-        f'<div class="cover-subtitle">Testing &amp; Demo Walkthrough</div>'
+        f'<div class="cover-subtitle">End-to-End Testing Guide</div>'
         f'<div class="cover-date">March 2026</div>'
         f'</div>'
         f'</div>'
