@@ -1,0 +1,40 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#DB0011', 'primaryTextColor': '#fff', 'primaryBorderColor': '#aa0000', 'lineColor': '#333333', 'secondaryColor': '#F5F5F5', 'tertiaryColor': '#E8E8E8', 'fontFamily': 'Inter, Helvetica Neue, sans-serif'}}}%%
+graph TB
+    subgraph CI["CI/CD Infrastructure"]
+        J[("Jenkins<br/><i>Build orchestration</i>")]
+        GH[("GitHub<br/><i>Source & PRs</i>")]
+        NX[("Nexus<br/><i>Artifacts</i>")]
+        K8[("Kubernetes<br/><i>Deployment</i>")]
+        DK[("Docker<br/><i>Container builds</i>")]
+    end
+
+    subgraph AI["AI Pipeline (Windsurf Cascade)"]
+        direction TB
+        D["1. Detect<br/>Failure"]
+        A["2. Analyse<br/>Root Cause"]
+        P["3. Generate<br/>Patch"]
+        V["4. Validate<br/>Fix"]
+        PR["5. Create<br/>PR"]
+        D --> A --> P --> V --> PR
+        V -->|"Retry (max 3)"| A
+    end
+
+    subgraph KB["Knowledge Base"]
+        CF[("Confluence<br/><i>Runbooks & known issues</i>")]
+    end
+
+    J -->|"Build failure<br/>+ console log"| D
+    CF -->|"Known issues<br/>+ resolutions"| A
+    NX -->|"Dependency<br/>checks"| A
+    GH -->|"Source files"| P
+    J -->|"Trigger build<br/>on branch"| V
+    GH -->|"Create branch<br/>+ open PR"| PR
+
+    style CI fill:#FAFAFA,stroke:#E0E0E0,color:#333
+    style AI fill:#FFF5F5,stroke:#DB0011,color:#333
+    style KB fill:#F5F5FF,stroke:#E0E0E0,color:#333
+    style D fill:#DB0011,stroke:#aa0000,color:#fff
+    style A fill:#DB0011,stroke:#aa0000,color:#fff
+    style P fill:#DB0011,stroke:#aa0000,color:#fff
+    style V fill:#DB0011,stroke:#aa0000,color:#fff
+    style PR fill:#DB0011,stroke:#aa0000,color:#fff

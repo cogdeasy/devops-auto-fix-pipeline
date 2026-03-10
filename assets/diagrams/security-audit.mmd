@@ -1,0 +1,36 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#DB0011', 'primaryTextColor': '#fff', 'lineColor': '#666', 'fontFamily': 'Inter, Helvetica Neue, sans-serif'}}}%%
+flowchart TB
+    subgraph Security["Security Controls"]
+        S1["No credentials in<br/>code or commits"]
+        S2["Environment variables<br/>for all secrets"]
+        S3["Log redaction<br/>before display"]
+        S4["Scoped MCP<br/>tool access"]
+    end
+
+    subgraph Audit["Audit Trail"]
+        A1["Detection logged<br/><i>job, build #, timestamp</i>"]
+        A2["Diagnosis logged<br/><i>error type, root cause</i>"]
+        A3["Patch logged<br/><i>diff, files changed</i>"]
+        A4["Validation logged<br/><i>build result, retries</i>"]
+        A5["PR created<br/><i>full context in body</i>"]
+        A1 --> A2 --> A3 --> A4 --> A5
+    end
+
+    subgraph Gov["Governance"]
+        G1["Never commit<br/>to main/master"]
+        G2["Feature branch<br/>per fix"]
+        G3["Human approval<br/>before merge"]
+        G4["Max 3 retries<br/>then escalate"]
+    end
+
+    style Security fill:#FEECEC,stroke:#C62828,color:#333
+    style Audit fill:#E3F2FD,stroke:#1565C0,color:#333
+    style Gov fill:#E8F5E9,stroke:#2E7D32,color:#333
+    style S1 fill:#fff,stroke:#C62828,color:#333
+    style S2 fill:#fff,stroke:#C62828,color:#333
+    style S3 fill:#fff,stroke:#C62828,color:#333
+    style S4 fill:#fff,stroke:#C62828,color:#333
+    style G1 fill:#fff,stroke:#2E7D32,color:#333
+    style G2 fill:#fff,stroke:#2E7D32,color:#333
+    style G3 fill:#fff,stroke:#2E7D32,color:#333
+    style G4 fill:#fff,stroke:#2E7D32,color:#333

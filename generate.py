@@ -78,6 +78,24 @@ def build_pdf(md_text):
         f'</div>'
     )
 
+    # ── Resolve diagram images to base64 ────────────────────────────
+    # Markdown img tags use paths relative to testing/ dir
+    md_dir = MD_FILE.parent
+    def _embed_img(m):
+        tag_before = m.group(1)
+        src = m.group(2)
+        tag_after = m.group(3)
+        img_path = (md_dir / src).resolve()
+        if img_path.exists() and img_path.suffix.lower() == '.png':
+            b64 = base64.b64encode(img_path.read_bytes()).decode()
+            return f'{tag_before}data:image/png;base64,{b64}{tag_after}'
+        return m.group(0)
+    html_body = re.sub(
+        r'(<img[^>]*\ssrc=["\'])([^"\']+)(["\'][^>]*>)',
+        _embed_img,
+        html_body
+    )
+
     # Remove the H1 from the markdown output (it becomes the cover title)
     html_body = re.sub(
         r'<h1>.*?</h1>',
@@ -421,6 +439,15 @@ def build_pdf(md_text):
         padding: 0;
         font-size: 7.5pt;
         line-height: 1.6;
+    }
+
+    /* ── Diagrams / images ────────────────────── */
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 14px auto 18px auto;
+        page-break-inside: avoid;
     }
 
     /* ── Links ───────────────────────────────── */

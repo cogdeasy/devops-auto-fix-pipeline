@@ -6,6 +6,8 @@ This guide walks you through end-to-end testing of the AI Auto-Fix Pipeline. The
 
 **Detect** → **Analyse** → **Patch** → **Validate** → **PR Create**
 
+![Pipeline Workflow](../assets/diagrams/workflow.png)
+
 This document covers both modes from start to finish, with test scenarios you can run to verify each stage works correctly.
 
 ---
@@ -270,6 +272,8 @@ In Windsurf, type:
 ---
 
 ## Side-by-Side Comparison
+
+![MCP Integration Architecture](../assets/diagrams/mcp-integration.png)
 
 | Stage | Manual Flow | MCP Flow |
 |-------|------------|----------|

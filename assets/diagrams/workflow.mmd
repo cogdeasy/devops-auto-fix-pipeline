@@ -1,0 +1,16 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#DB0011', 'primaryTextColor': '#fff', 'lineColor': '#333333', 'fontFamily': 'Inter, Helvetica Neue, sans-serif'}}}%%
+flowchart LR
+    D["<b>1. DETECT</b><br/>Identify failed<br/>build in Jenkins"]
+    A["<b>2. ANALYSE</b><br/>Classify error,<br/>find root cause"]
+    P["<b>3. PATCH</b><br/>Generate<br/>minimal fix"]
+    V["<b>4. VALIDATE</b><br/>Build & test<br/>on branch"]
+    PR["<b>5. PR CREATE</b><br/>Open PR with<br/>full context"]
+
+    D --> A --> P --> V --> PR
+    V -->|"FAIL<br/>(retry ≤3)"| A
+
+    style D fill:#DB0011,stroke:#aa0000,color:#fff,rx:8
+    style A fill:#333333,stroke:#222,color:#fff,rx:8
+    style P fill:#333333,stroke:#222,color:#fff,rx:8
+    style V fill:#333333,stroke:#222,color:#fff,rx:8
+    style PR fill:#2E7D32,stroke:#1B5E20,color:#fff,rx:8

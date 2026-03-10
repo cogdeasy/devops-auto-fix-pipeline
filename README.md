@@ -13,14 +13,7 @@ This pipeline implements the HSBC AI-Driven DevOps Auto-Fix workflow from Conflu
 
 ## Pipeline Stages
 
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────────┐    ┌────────────┐    ┌─────────────┐
-│  1. Failure  │───>│  2. Log      │───>│  3. Patch        │───>│ 4. Validate│───>│ 5. PR       │
-│  Detection   │    │  Analysis    │    │  Generation      │    │            │    │ Creation    │
-└─────────────┘    └──────────────┘    └─────────────────┘    └────────────┘    └─────────────┘
-    Jenkins            AI Service          AI Service           Build+Test        GitHub
-    (MCP/manual)       (Windsurf)          (Windsurf)           (Jenkins)         (MCP/manual)
-```
+![Pipeline Workflow](assets/diagrams/workflow.png)
 
 ## Key Features
 
@@ -31,6 +24,8 @@ This pipeline implements the HSBC AI-Driven DevOps Auto-Fix workflow from Conflu
 - **Dual-mode operation** — Fully automated OR manual paste workflows
 
 ## Architecture
+
+![Pipeline Architecture](assets/diagrams/architecture.png)
 
 ### Components
 
@@ -45,17 +40,7 @@ This pipeline implements the HSBC AI-Driven DevOps Auto-Fix workflow from Conflu
 
 ### MCP Integration Map
 
-```
-Windsurf Cascade
-    │
-    ├── jenkins-mcp ────── Jenkins API (build triggers, log retrieval, status)
-    │
-    ├── confluence-mcp ─── Confluence API (runbooks, known issues, documentation)
-    │
-    ├── github-mcp ─────── GitHub API (PRs, commits, branch management)
-    │
-    └── nexus-mcp ──────── Nexus API (artifact status, dependency checks)
-```
+![MCP Integration](assets/diagrams/mcp-integration.png)
 
 When MCPs are **not connected**, the user manually provides this data by pasting into Windsurf prompts.
 
@@ -129,6 +114,8 @@ devops-auto-fix-pipeline/
 5. Paste into your PR tool or let Windsurf create a local patch
 
 ## Security & Compliance
+
+![Security & Audit](assets/diagrams/security-audit.png)
 
 - All AI-generated changes are logged
 - PRs require human approval before merge

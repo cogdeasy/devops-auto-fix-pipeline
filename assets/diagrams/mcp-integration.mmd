@@ -1,0 +1,38 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#DB0011', 'primaryTextColor': '#fff', 'lineColor': '#666', 'fontFamily': 'Inter, Helvetica Neue, sans-serif'}}}%%
+graph LR
+    subgraph WS["Windsurf Cascade"]
+        AI["AI Agent"]
+    end
+
+    subgraph MCP["MCP Servers (stdio)"]
+        JM["jenkins-mcp"]
+        CM["confluence-mcp"]
+        GM["github-mcp"]
+        NM["nexus-mcp"]
+    end
+
+    subgraph Services["Enterprise Services"]
+        JK["Jenkins API"]
+        CF["Confluence API"]
+        GH["GitHub API"]
+        NX["Nexus API"]
+    end
+
+    AI <-->|"get_failed_builds<br/>get_build_log<br/>trigger_build"| JM
+    AI <-->|"search_known_issues<br/>get_page_content"| CM
+    AI <-->|"create_pr<br/>read_file<br/>create_branch"| GM
+    AI <-->|"check_vulnerabilities<br/>search_artifacts"| NM
+
+    JM <--> JK
+    CM <--> CF
+    GM <--> GH
+    NM <--> NX
+
+    style WS fill:#FFF5F5,stroke:#DB0011,color:#333
+    style MCP fill:#F5F5F5,stroke:#999,color:#333
+    style Services fill:#FAFAFA,stroke:#E0E0E0,color:#333
+    style AI fill:#DB0011,stroke:#aa0000,color:#fff
+    style JM fill:#333,stroke:#222,color:#fff
+    style CM fill:#333,stroke:#222,color:#fff
+    style GM fill:#333,stroke:#222,color:#fff
+    style NM fill:#333,stroke:#222,color:#fff
