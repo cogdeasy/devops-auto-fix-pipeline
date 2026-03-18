@@ -87,3 +87,17 @@ When MCP integrations are not available, operate in Paste mode:
 - PR descriptions must include: root cause analysis, changes made, risk assessment, and a link to the original failed build.
 - All PRs must be labelled with `ai-auto-fix`.
 - Keep generated patches minimal -- change only what is necessary to fix the identified issue. Do not refactor unrelated code.
+
+## Build Log Triage Flow
+
+When the user invokes the `build-log-triage` workflow (or asks to triage/summarise build logs):
+
+- This is a **read-only, diagnostic flow**. It does not generate patches, create branches, or open PRs.
+- The flow runs two stages: **01-ingest** (raw log pull) and **02-summarise** (hierarchical summarisation).
+- Write all output files to a `logs/` directory in the workspace.
+- Always generate a `logs/manifest.json` with metadata about all ingested builds.
+- Per-log summaries must use the **summarise-per-log** prompt template and follow the standard failure taxonomy.
+- The cross-log triage summary must group failures by type, rank by severity, and recommend next steps.
+- Use adaptive context budgets: generous (1-3 failures), moderate (4-10), terse (10+).
+- After summarisation, present the triage to the user and offer to run `auto-fix-mcp` or `auto-fix-paste` on specific failure groups.
+- Log every action in the audit log, same as the auto-fix flow.
