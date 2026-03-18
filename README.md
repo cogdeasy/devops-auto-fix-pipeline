@@ -97,6 +97,21 @@ All files use a single canonical set of failure categories:
 
 When MCPs are **not connected**, the user manually provides this data by pasting into Windsurf prompts.
 
+## Build Log Pipeline — Ingestion & Summarisation
+
+The pipeline uses a two-phase approach to get Jenkins build logs into Windsurf and make them useful to the AI:
+
+| Phase | What happens | Output |
+|-------|-------------|--------|
+| **Phase 1 — Raw Pull** | Script pulls build logs from Jenkins into the workspace | `raw_build_*.md` files |
+| **Phase 2 — Summarisation** | Cascade applies hierarchical summarisation (per-log extraction → cross-log triage) | `summary_build*.md` + `cross_log_triage_summary.md` |
+
+![Phase 1 — Raw File Pull](assets/diagrams/build-log-phase1.svg)
+
+![Phase 2 — Hierarchical Summarisation](assets/diagrams/build-log-phase2.svg)
+
+See [docs/BUILD-LOG-PIPELINE.md](docs/BUILD-LOG-PIPELINE.md) for the full strategy breakdown (overflow files, structured log format, adaptive context budgets, lazy loading).
+
 ## Project Structure
 
 ```
@@ -142,8 +157,9 @@ devops-auto-fix-pipeline/
 │   └── sample-pr-body.md
 │
 ├── docs/
+│   ├── BUILD-LOG-PIPELINE.md   # Build log ingestion & summarisation strategy
 │   ├── MCP-INTEGRATION.md      # Detailed MCP breakout
-│   └── PASTE-MODE.md          # How to use without MCPs
+│   └── PASTE-MODE.md           # How to use without MCPs
 │
 ├── mcp-config.json             # Windsurf MCP config (copy to ~/.codeium/windsurf/)
 ├── AGENTS.md                   # AI agent instructions (auto-discovered by Windsurf & Devin)
