@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 780" width="1500" height="780">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0.5 L0,6.5 L9,3.5 Z" fill="#666" />
+    </marker>
+    <marker id="arrow-accent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <path d="M0,0.5 L0,6.5 L9,3.5 Z" fill="#E8524A" />
+    </marker>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="1" dy="2" stdDeviation="4" flood-color="#00000015" />
+    </filter>
+    <filter id="shadow-lg" x="-3%" y="-3%" width="106%" height="110%">
+      <feDropShadow dx="2" dy="4" stdDeviation="6" flood-color="#00000025" />
+    </filter>
+    <pattern id="dotGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="0.8" fill="#ccc" opacity="0.4" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="780" fill="#f8f8f8" />
+  <rect width="1500" height="780" fill="url(#dotGrid)" />
+
+  <!-- ========== TITLE ========== -->
+  <text x="750" y="48" text-anchor="middle" font-family="Arial, system-ui, sans-serif" font-size="26" font-weight="700" fill="#333">
+    <tspan fill="#E8524A">Phase 1</tspan>
+    <tspan fill="#555"> — We just pull the raw files.</tspan>
+  </text>
+  <line x1="560" y1="60" x2="940" y2="60" stroke="#e0e0e0" stroke-width="1" />
+
+  <!-- ========== JENKINS BOX (Left) ========== -->
+  <rect x="60" y="90" width="420" height="370" rx="12" fill="#eaeaea" stroke="#d0d0d0" stroke-width="1" filter="url(#shadow-lg)" />
+  <!-- Header bar -->
+  <rect x="60" y="90" width="420" height="42" rx="12" fill="#d5d5d5" />
+  <rect x="60" y="118" width="420" height="14" fill="#d5d5d5" />
+  <!-- Jenkins logo -->
+  <circle cx="98" cy="111" r="13" fill="#335061" />
+  <text x="98" y="116" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#fff">J</text>
+  <text x="122" y="117" font-family="Arial, system-ui, sans-serif" font-size="16" font-weight="700" fill="#555">Jenkins</text>
+
+  <!-- Build rows -->
+  <g opacity="0.6">
+    <rect x="82" y="152" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="167" r="5" fill="#4CAF50" />
+    <text x="114" y="171" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1041 — main — Success</text>
+
+    <rect x="82" y="190" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="205" r="5" fill="#4CAF50" />
+    <text x="114" y="209" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1040 — main — Success</text>
+
+    <rect x="82" y="228" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="243" r="5" fill="#F44336" />
+    <text x="114" y="247" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1039 — feat/auth — Failed</text>
+
+    <rect x="82" y="266" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="281" r="5" fill="#4CAF50" />
+    <text x="114" y="285" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1038 — main — Success</text>
+
+    <rect x="82" y="304" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="319" r="5" fill="#FF9800" />
+    <text x="114" y="323" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1037 — develop — Running</text>
+
+    <rect x="82" y="342" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="357" r="5" fill="#F44336" />
+    <text x="114" y="361" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1036 — fix/deps — Failed</text>
+
+    <rect x="82" y="380" width="376" height="30" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.7" />
+    <circle cx="100" cy="395" r="5" fill="#4CAF50" />
+    <text x="114" y="399" font-family="Arial, sans-serif" font-size="11" fill="#666">Build #1035 — main — Success</text>
+  </g>
+
+  <!-- ========== WINDSURF IDE (Right) ========== -->
+  <rect x="560" y="90" width="880" height="370" rx="12" fill="#1e1e1e" stroke="#333" stroke-width="1" filter="url(#shadow-lg)" />
+  <!-- Title bar -->
+  <rect x="560" y="90" width="880" height="38" rx="12" fill="#181818" />
+  <rect x="560" y="116" width="880" height="12" fill="#181818" />
+  <!-- Traffic lights -->
+  <circle cx="584" cy="109" r="5.5" fill="#ff5f57" />
+  <circle cx="602" cy="109" r="5.5" fill="#ffbd2e" />
+  <circle cx="620" cy="109" r="5.5" fill="#28c840" />
+  <text x="1000" y="114" text-anchor="middle" font-family="Arial, system-ui, sans-serif" font-size="13" font-weight="600" fill="#888">Windsurf</text>
+
+  <!-- File Explorer Panel -->
+  <rect x="564" y="128" width="190" height="324" fill="#252526" />
+  <line x1="754" y1="128" x2="754" y2="452" stroke="#333" stroke-width="1" />
+  <text x="576" y="148" font-family="Arial, sans-serif" font-size="9.5" font-weight="600" fill="#777" letter-spacing="1">EXPLORER</text>
+
+  <!-- Folder: logs -->
+  <path d="M580,162 L586,162 L588,159 L596,159 L596,171 L580,171 Z" fill="#C09553" opacity="0.85" />
+  <text x="602" y="169" font-family="'Consolas','Courier New',monospace" font-size="12" fill="#ccc">logs</text>
+
+  <!-- File: raw_build_one.md -->
+  <rect x="592" y="180" width="11" height="13" rx="1.5" fill="none" stroke="#6a9955" stroke-width="0.8" />
+  <text x="594.5" y="190" font-family="Arial, sans-serif" font-size="5.5" fill="#6a9955">M</text>
+  <text x="610" y="190" font-family="'Consolas','Courier New',monospace" font-size="11" fill="#d4d4d4">raw_build_one.md</text>
+
+  <!-- File: raw_build_two.md -->
+  <rect x="592" y="200" width="11" height="13" rx="1.5" fill="none" stroke="#6a9955" stroke-width="0.8" />
+  <text x="594.5" y="210" font-family="Arial, sans-serif" font-size="5.5" fill="#6a9955">M</text>
+  <text x="610" y="210" font-family="'Consolas','Courier New',monospace" font-size="11" fill="#d4d4d4">raw_build_two.md</text>
+
+  <!-- Editor panels -->
+  <rect x="758" y="128" width="340" height="324" fill="#1e1e1e" />
+  <line x1="1098" y1="128" x2="1098" y2="452" stroke="#333" stroke-width="1" />
+  <!-- Tab bar -->
+  <rect x="758" y="128" width="340" height="24" fill="#252526" />
+  <rect x="758" y="128" width="140" height="24" fill="#1e1e1e" />
+  <text x="770" y="144" font-family="'Consolas',monospace" font-size="10" fill="#ccc">raw_build_one.md</text>
+  <rect x="898" y="128" width="140" height="24" fill="#252526" />
+  <text x="910" y="144" font-family="'Consolas',monospace" font-size="10" fill="#666">raw_build_two.md</text>
+
+  <!-- Faint code lines -->
+  <g opacity="0.25">
+    <rect x="774" y="164" width="115" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="174" width="85" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="184" width="135" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="194" width="55" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="204" width="105" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="214" width="75" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="230" width="125" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="240" width="65" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="250" width="95" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="266" width="110" height="2.5" rx="1" fill="#999" />
+    <rect x="774" y="276" width="50" height="2.5" rx="1" fill="#999" />
+
+    <rect x="914" y="164" width="95" height="2.5" rx="1" fill="#999" />
+    <rect x="914" y="174" width="65" height="2.5" rx="1" fill="#999" />
+    <rect x="914" y="184" width="115" height="2.5" rx="1" fill="#999" />
+    <rect x="914" y="194" width="45" height="2.5" rx="1" fill="#999" />
+    <rect x="914" y="204" width="85" height="2.5" rx="1" fill="#999" />
+  </g>
+
+  <!-- Cascade / AI panel (right) -->
+  <rect x="1102" y="128" width="334" height="324" fill="#252526" />
+  <rect x="1102" y="128" width="334" height="26" fill="#2d2d2d" />
+  <text x="1124" y="145" font-family="Arial, sans-serif" font-size="10" font-weight="600" fill="#888" letter-spacing="0.5">CASCADE</text>
+
+  <text x="1120" y="178" font-family="'Consolas','Courier New',monospace" font-size="12.5" fill="#569CD6">00_orchestrator</text>
+  <text x="1120" y="200" font-family="'Consolas',monospace" font-size="12.5" fill="#555">....</text>
+  <text x="1120" y="232" font-family="'Consolas','Courier New',monospace" font-size="12.5" fill="#CE9178">breaks here.</text>
+  <text x="1120" y="264" font-family="'Consolas','Courier New',monospace" font-size="12.5" fill="#6A9955">specific md files</text>
+
+  <!-- Status bar -->
+  <rect x="560" y="448" width="880" height="12" rx="0" fill="#007acc" />
+
+  <!-- ========== PIPELINE FLOW ========== -->
+
+  <!-- Step 1 label pill -->
+  <rect x="120" y="558" width="80" height="28" rx="14" fill="#E8524A" />
+  <text x="160" y="577" text-anchor="middle" font-family="Arial, system-ui, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 1</text>
+
+  <!-- Step 1 box -->
+  <rect x="220" y="548" width="480" height="48" rx="10" fill="#2c2c2c" stroke="#444" stroke-width="0.5" filter="url(#shadow)" />
+  <text x="460" y="578" text-anchor="middle" font-family="Arial, system-ui, sans-serif" font-size="14" font-weight="500" fill="#f0f0f0">Script that pulls the raw build log files from Jenkins</text>
+
+  <!-- Arrow: Jenkins down to Step 1 -->
+  <path d="M270,460 L270,500 C270,528 270,528 280,544" fill="none" stroke="#888" stroke-width="2" marker-end="url(#arrow)" stroke-linecap="round" />
+
+  <!-- Arrow: Step 1 out to Windsurf (smooth curve) -->
+  <path d="M700,572 C820,572 920,520 970,464" fill="none" stroke="#E8524A" stroke-width="2.5" marker-end="url(#arrow-accent)" stroke-linecap="round" />
+  <!-- Label on arrow -->
+  <rect x="815" y="508" width="90" height="22" rx="4" fill="#fff" stroke="#e0e0e0" stroke-width="0.5" />
+  <text x="860" y="523" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="600" fill="#E8524A">raw .md files</text>
+
+  <!-- ========== HINT: HIERARCHICAL SUMMARISATION ========== -->
+  <text x="1080" y="640" font-family="Arial, system-ui, sans-serif" font-size="15" font-weight="600" fill="#bbb" font-style="italic">Hierarchical summarisation</text>
+  <path d="M1075,650 L1310,650" fill="none" stroke="#ddd" stroke-width="1" stroke-dasharray="5,4" />
+  <path d="M1305,646 L1316,650 L1305,654" fill="#ddd" />
+
+  <!-- Footer -->
+  <text x="750" y="755" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ccc">HSBC Auto DevOps Pipeline — Architecture Overview</text>
+</svg>

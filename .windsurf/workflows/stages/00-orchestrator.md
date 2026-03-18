@@ -1,6 +1,28 @@
 # Stage 0: Pipeline Orchestrator
 
-The orchestrator is the entry point for the AI Auto-Fix Pipeline. It determines the operating mode, initialises pipeline state, executes stages 01-05 in sequence, manages the retry loop, and produces the final audit trail.
+The orchestrator is the entry point for the AI Auto-Fix Pipeline. It determines the operating mode and pipeline type, initialises pipeline state, and routes to the appropriate stage sequence.
+
+There are two pipeline types:
+
+| Type | Invoked via | Stages | Purpose |
+|------|-------------|--------|---------|
+| **`auto_fix`** | `auto-fix-mcp` / `auto-fix-paste` | 01-detect → 02-analyse → 03-patch → 04-validate → 05-pr-create | Full fix pipeline: detect, fix, validate, PR |
+| **`build_log_triage`** | `build-log-triage` | 01-ingest → 02-summarise | Read-only: ingest logs, produce triage summary |
+
+---
+
+## Pipeline Type Detection
+
+Before mode detection, determine which pipeline is being requested:
+
+| Trigger | Pipeline Type |
+|---------|--------------|
+| User invokes `@workflow auto-fix-mcp` or `@workflow auto-fix-paste` | `auto_fix` |
+| User invokes `@workflow build-log-triage` | `build_log_triage` |
+| User asks to "triage", "summarise", or "ingest" build logs | `build_log_triage` |
+| User asks to "fix", "patch", or "auto-fix" a build failure | `auto_fix` |
+
+Set `pipeline_state.pipeline_type` accordingly.
 
 ---
 
@@ -31,11 +53,12 @@ Initialise and carry the following state object through all stages:
 
 ```
 pipeline_state:
-  run_id: string          # unique identifier, e.g. "AF-{timestamp}"
+  run_id: string          # unique identifier, e.g. "AF-{timestamp}" or "BLT-{timestamp}"
+  pipeline_type: "auto_fix" | "build_log_triage"
   mode: "mcp" | "paste"
   started_at: timestamp
-  current_stage: string   # "detect" | "analyse" | "patch" | "validate" | "pr_create"
-  retry_count: number     # starts at 0, max 3
+  current_stage: string   # depends on pipeline_type — see below
+  retry_count: number     # starts at 0, max 3 (auto_fix only)
   config:
     max_retries: 3
     timeout_minutes: 30
@@ -43,11 +66,15 @@ pipeline_state:
     auto_merge: false
     labels: ["ai-auto-fix"]
   stages:
+    # auto_fix stages
     detect: { status, output }
     analyse: { status, output }
     patch: { status, output }
     validate: { status, output }
     pr_create: { status, output }
+    # build_log_triage stages
+    ingest: { status, output }
+    summarise: { status, output }
   audit_log: []           # append-only log of all actions taken
 ```
 
@@ -55,9 +82,23 @@ pipeline_state:
 
 ## Execution Flow
 
+### Route by Pipeline Type
+
+```
+if pipeline_type == "auto_fix":
+    execute Auto-Fix Flow (stages 01-detect through 05-pr-create)
+elif pipeline_type == "build_log_triage":
+    execute Build Log Triage Flow (stages 01-ingest through 02-summarise)
+```
+
+---
+
+### Auto-Fix Flow (`auto_fix`)
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                  00 - ORCHESTRATOR                        │
+│                  pipeline_type: auto_fix                  │
 │                                                          │
 │  1. Detect mode (MCP / Paste)                            │
 │  2. Initialise pipeline_state                            │
@@ -78,7 +119,33 @@ pipeline_state:
 └──────────────────────────────────────────────────────────┘
 ```
 
-### Step-by-step
+### Build Log Triage Flow (`build_log_triage`)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  00 - ORCHESTRATOR                        │
+│                  pipeline_type: build_log_triage          │
+│                                                          │
+│  1. Detect mode (MCP / Paste)                            │
+│  2. Initialise pipeline_state                            │
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  01-ingest    → raw logs in workspace              │  │
+│  │  02-summarise → per-log summaries + triage doc     │  │
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  3. Present triage summary to user                       │
+│  4. Offer next steps:                                    │
+│     - Run auto-fix on specific failure group             │
+│     - Drill into a specific build log                    │
+│     - Export triage summary                              │
+│  5. Produce audit summary                                │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Auto-Fix Step-by-step
 
 1. **Run Stage 01 — Failure Detection** (`stages/01-detect.md`)
    - Pass: `pipeline_state.mode`
@@ -127,6 +194,30 @@ pipeline_state:
    - Receive: `pr_url`, `pr_number`, `pipeline_summary`
    - Store in `pipeline_state.stages.pr_create.output`
    - Append to `audit_log`
+
+---
+
+### Build Log Triage Step-by-step
+
+1. **Run Stage 01-Ingest** (`stages/01-ingest.md`)
+   - Pass: `pipeline_state.mode`, job name(s), optional `since` filter
+   - Receive: `manifest_path`, `raw_log_paths`, `total_builds`, `failed_builds`
+   - Store in `pipeline_state.stages.ingest.output`
+   - Append to `audit_log`: `"Stage 01-ingest complete — ingested {failed_builds} logs"`
+
+2. **Run Stage 02-Summarise** (`stages/02-summarise.md`)
+   - Pass: `manifest_path`, `raw_log_paths`, auto-detected `context_budget`
+   - Receive: `triage_summary_path`, `per_log_summary_paths`, `failure_groups`
+   - Store in `pipeline_state.stages.summarise.output`
+   - Append to `audit_log`
+
+3. **Present triage to user:**
+   - Display the `cross_log_triage_summary.md` content
+   - Show the Table of Contents with failure group counts
+   - Offer next steps:
+     - "Run auto-fix on [failure group]" &rarr; switches to `auto_fix` pipeline type, pre-populating detect stage with the relevant build
+     - "Show me the full log for [build]" &rarr; reads the raw log file
+     - "Export this triage summary" &rarr; outputs the file path
 
 ---
 
@@ -181,12 +272,15 @@ At pipeline completion (or abort), present the full audit log as a summary table
 
 ## Completion
 
+### Auto-Fix Completion
+
 On successful completion, present:
 
 ```
 Pipeline Complete
 =================
 Run ID:       {run_id}
+Pipeline:     auto_fix
 Mode:         {mode}
 Job:          {job_name} #{build_number}
 Error Type:   {error_type}
@@ -201,3 +295,23 @@ Status:       COMPLETE
 ```
 
 On failure (retries exhausted), present the same format with `Status: FAILED — escalated to manual review` and include all retry attempt summaries.
+
+### Build Log Triage Completion
+
+On successful completion, present:
+
+```
+Triage Complete
+===============
+Run ID:       {run_id}
+Pipeline:     build_log_triage
+Mode:         {mode}
+Total Builds: {total_builds}
+Failed:       {failed_builds}
+Groups:       {failure_groups}
+Triage:       {triage_summary_path}
+Duration:     {elapsed time}
+Status:       COMPLETE
+
+Next: run `auto-fix-mcp` or `auto-fix-paste` to fix specific failures.
+```
