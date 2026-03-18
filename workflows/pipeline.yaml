@@ -89,7 +89,7 @@ pipeline:
           description: "The resolved build number being analysed."
         - name: failure_type
           type: string
-          enum: [compilation, test, dependency, deployment, infrastructure, unknown]
+          enum: [compilation, test_failure, dependency, deployment, infrastructure, configuration, unknown]
           description: "High-level classification of the build failure."
         - name: build_log
           type: text
@@ -396,6 +396,20 @@ pipeline:
           params:
             job_name: "{{job_name}}"
             build_number: "{{triggered_build_number}}"
+
+        # Step 5 -- AI validation review of the patch against build output
+        - id: ai_validate
+          description: >-
+            Use AI to review whether the patch correctly addresses the
+            diagnosed root cause, and flag any new issues introduced.
+          type: ai_prompt
+          prompt_template: "prompts/validate-prompt.md"
+          context:
+            build_log: "{{detect.build_log}}"
+            diagnosis: "{{analyse.diagnosis}}"
+            patch: "{{patch}}"
+            retry_count: "{{retry_count}}"
+            validation_output: "{{wait_for_build.console_log}}"
 
       breakpoint:
         condition: "build_result == 'failure'"

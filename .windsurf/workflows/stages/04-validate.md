@@ -1,5 +1,9 @@
 # Stage 4: Validation
 
+> **Prompt templates**:
+> - [`workflows/prompts/validate-prompt.md`](../../../workflows/prompts/validate-prompt.md) — AI review of the patch against the build output.
+> - [`workflows/prompts/validate-retry-prompt.md`](../../../workflows/prompts/validate-retry-prompt.md) — re-analysis after a failed fix attempt (used on retry).
+
 ## Input
 - `patch`: unified diff from Stage 3
 - `job_name`, `build_number` from Stage 1

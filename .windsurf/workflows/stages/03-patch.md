@@ -1,5 +1,7 @@
 # Stage 3: Patch Generation
 
+> **Prompt template**: [`workflows/prompts/patch-prompt.md`](../../../workflows/prompts/patch-prompt.md) — used by `pipeline.yaml` for AI-driven patch generation at this stage.
+
 ## Input
 - `diagnosis`: structured diagnosis from Stage 2
 - Source files (fetched via MCP or provided by user)

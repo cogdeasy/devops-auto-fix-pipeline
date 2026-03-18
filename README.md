@@ -46,6 +46,36 @@ DETECT → ANALYSE → PATCH → VALIDATE ─── PASS → PR CREATE
 - **Breakpoints & Human Approval** — configurable gates for critical/low-confidence fixes
 - **Audit Trail** — every action logged with timestamp, stage, and mode
 
+## Two-Layer Architecture: Stages + Prompt Templates
+
+This pipeline is built from two complementary layers. Understanding this separation is key to working with or extending it.
+
+| Layer | Location | What it is | Consumed by |
+|-------|----------|------------|-------------|
+| **Stage workflows** | [`.windsurf/workflows/stages/`](.windsurf/workflows/stages/) | Procedural instructions — "do X, then Y, check Z". Defines the orchestration logic, MCP/Paste branching, inputs/outputs, and retry flow. | Windsurf Cascade (interactive IDE) |
+| **Prompt templates** | [`workflows/prompts/`](workflows/prompts/) | Structured LLM prompts with `{{VARIABLE}}` placeholders. Defines *what to ask the AI* when a stage needs reasoning. | [`pipeline.yaml`](workflows/pipeline.yaml) (programmatic engine) |
+| **Pipeline YAML** | [`workflows/pipeline.yaml`](workflows/pipeline.yaml) | Machine-readable pipeline definition that wires prompt templates into stages via `prompt_template:` fields. | Programmatic pipeline engine |
+
+### How they map together
+
+| Stage Workflow | Prompt Template(s) | What the prompt does |
+|---------------|-------------------|---------------------|
+| `01-detect.md` | `classify-failure-prompt.md` | Classifies the build failure into a category |
+| `02-analyse.md` | `analyse-prompt.md` | Deep root cause analysis with YAML output schema |
+| `03-patch.md` | `patch-prompt.md` | Generates a minimal unified diff with risk assessment |
+| `04-validate.md` | `validate-prompt.md` | Reviews the patch against the build output |
+| `04-validate.md` (retry) | `validate-retry-prompt.md` | Re-analyses after a failed fix attempt |
+| `05-pr-create.md` | `pr-body-template.md` | Structured PR body with audit trail |
+| `05-pr-create.md` | `pr-comment-template.md` | Follow-up PR comments for retries/escalation |
+
+Each stage workflow cross-references its corresponding prompt template(s) at the top of the file.
+
+### Error Category Taxonomy
+
+All files use a single canonical set of failure categories:
+
+`compilation` | `test_failure` | `dependency` | `deployment` | `infrastructure` | `configuration` | `unknown`
+
 ## Architecture
 
 ![Pipeline Architecture](assets/diagrams/architecture.png)
@@ -91,9 +121,16 @@ devops-auto-fix-pipeline/
 │   ├── github-mcp/             # GitHub MCP (uses existing)
 │   └── nexus-mcp/              # Nexus MCP server
 │
-├── workflows/                  # Reusable workflow templates
-│   ├── pipeline.yaml           # Master pipeline definition
-│   └── prompts/                # Prompt templates for each stage
+├── workflows/                  # Pipeline definition + AI prompt templates
+│   ├── pipeline.yaml           # Master pipeline definition (wires stages to prompts)
+│   └── prompts/                # LLM prompt templates ({{VARIABLE}} placeholders)
+│       ├── classify-failure-prompt.md   → Stage 01
+│       ├── analyse-prompt.md            → Stage 02
+│       ├── patch-prompt.md              → Stage 03
+│       ├── validate-prompt.md           → Stage 04
+│       ├── validate-retry-prompt.md     → Stage 04 (retry)
+│       ├── pr-body-template.md          → Stage 05
+│       └── pr-comment-template.md       → Stage 05
 │
 ├── scripts/                    # Helper scripts
 │   ├── setup-mcp.sh            # MCP server setup script

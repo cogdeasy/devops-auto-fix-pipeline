@@ -1,5 +1,7 @@
 # Stage 1: Failure Detection
 
+> **Prompt template**: [`workflows/prompts/classify-failure-prompt.md`](../../../workflows/prompts/classify-failure-prompt.md) — used by `pipeline.yaml` for AI-driven failure classification at this stage.
+
 ## MCP Mode (jenkins-mcp available)
 
 1. Call `get_failed_builds` with parameters:
@@ -29,5 +31,5 @@ job_name: string
 build_number: number
 build_log: string (full console output)
 failure_timestamp: string
-failure_type: "build" | "test" | "deploy" | "unknown"
+failure_type: "compilation" | "test_failure" | "dependency" | "deployment" | "infrastructure" | "configuration" | "unknown"
 ```

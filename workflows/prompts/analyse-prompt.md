@@ -23,8 +23,9 @@ traceable to a specific line or section of the build log.
 | Failure Type | {{FAILURE_TYPE}}   |
 
 `FAILURE_TYPE` is a pre-classification and may be one of: `compilation`,
-`test`, `dependency`, `deployment`, or `unknown`. Treat it as a hint, not as
-ground truth -- your analysis may override it.
+`test_failure`, `dependency`, `deployment`, `infrastructure`, `configuration`,
+or `unknown`. Treat it as a hint, not as ground truth -- your analysis may
+override it.
 
 ### Build Log
 

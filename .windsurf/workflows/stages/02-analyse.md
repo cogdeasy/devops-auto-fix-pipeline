@@ -1,5 +1,7 @@
 # Stage 2: Log Analysis
 
+> **Prompt template**: [`workflows/prompts/analyse-prompt.md`](../../../workflows/prompts/analyse-prompt.md) — used by `pipeline.yaml` for AI-driven root cause analysis at this stage.
+
 ## Input
 - `build_log`: full console output from Stage 1
 - Optional: Confluence known issues content
@@ -12,11 +14,12 @@ Parse the build log to classify the error:
 
 | Pattern | Classification |
 |---------|---------------|
-| `[ERROR] COMPILATION ERROR` | compilation |
-| `Tests run: X, Failures: Y` | test_failure |
-| `Could not resolve dependencies` | dependency |
-| `Connection refused`, `timeout` | infrastructure |
-| `kubectl`, `docker` errors | deployment |
+| `[ERROR] COMPILATION ERROR` | `compilation` |
+| `Tests run: X, Failures: Y` | `test_failure` |
+| `Could not resolve dependencies` | `dependency` |
+| `Connection refused`, `timeout` | `infrastructure` |
+| `kubectl`, `docker` errors | `deployment` |
+| Missing env var, invalid config | `configuration` |
 
 ### 2.2 Root Cause Identification
 
@@ -46,7 +49,7 @@ Parse the build log to classify the error:
 ## Output
 
 ```
-error_type: "compilation" | "test_failure" | "dependency" | "deployment" | "infrastructure"
+error_type: "compilation" | "test_failure" | "dependency" | "deployment" | "infrastructure" | "configuration" | "unknown"
 root_cause: string (description)
 affected_files: Array<{ path: string, line?: number }>
 severity: "critical" | "major" | "minor"
