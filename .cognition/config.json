@@ -14,6 +14,8 @@
       "args": ["tsx", "/Users/deasy/Code/work/devops-auto-fix-pipeline/mcp-servers/nexus-mcp/index.ts"],
       "env": {
         "NEXUS_URL": "",
+        "NEXUS_USER": "",
+        "NEXUS_PASSWORD": "",
         "NEXUS_TOKEN": ""
       }
     },

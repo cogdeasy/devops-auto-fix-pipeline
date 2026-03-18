@@ -2,6 +2,8 @@
 
 This workflow executes the complete auto-fix pipeline end-to-end using MCP integrations. All data retrieval and actions are performed through connected MCP tool servers (Jenkins, Confluence, GitHub, Nexus).
 
+> **Orchestrator:** This workflow is invoked by `stages/00-orchestrator.md` when mode detection resolves to **MCP mode**. The orchestrator manages state, retry loops, and breakpoints. Each step below corresponds to a stage in the orchestrator flow.
+
 ---
 
 ## Prerequisites

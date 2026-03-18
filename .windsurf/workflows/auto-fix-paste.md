@@ -4,6 +4,8 @@ This workflow executes the complete auto-fix pipeline where the user pastes data
 
 Use this workflow when MCP servers are not available or when the user prefers hands-on control over the process.
 
+> **Orchestrator:** This workflow is invoked by `stages/00-orchestrator.md` when mode detection resolves to **Paste mode**. The orchestrator manages state, retry loops, and breakpoints. Each step below corresponds to a stage in the orchestrator flow.
+
 ---
 
 ## Prerequisites

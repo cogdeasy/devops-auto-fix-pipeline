@@ -9,12 +9,20 @@ import {
 
 const NEXUS_URL = process.env.NEXUS_URL || "http://localhost:8081";
 const NEXUS_TOKEN = process.env.NEXUS_TOKEN || "";
+const NEXUS_USER = process.env.NEXUS_USER || "";
+const NEXUS_PASSWORD = process.env.NEXUS_PASSWORD || "";
 
 async function nexusFetch(path: string): Promise<Response> {
   const url = `${NEXUS_URL}${path}`;
+  let authHeader: string;
+  if (NEXUS_USER && NEXUS_PASSWORD) {
+    authHeader = `Basic ${Buffer.from(`${NEXUS_USER}:${NEXUS_PASSWORD}`).toString("base64")}`;
+  } else {
+    authHeader = `Bearer ${NEXUS_TOKEN}`;
+  }
   const response = await fetch(url, {
     headers: {
-      Authorization: `Bearer ${NEXUS_TOKEN}`,
+      Authorization: authHeader,
       Accept: "application/json",
     },
   });
